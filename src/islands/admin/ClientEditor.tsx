@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { Field } from '../fields';
-import { EMPTY, PART_LOYERS, STEPS, TAUX_MAX, brief, endettement, type FieldDef, type FormState } from '../form-schema';
+import { EMPTY, PART_LOYERS, STEPS, TAUX_DEFAUT, TAUX_MAX, brief, capacite, endettement, type FieldDef, type FormState } from '../form-schema';
 import '../islands.css';
 
 type Statut = { id: string; label: string };
@@ -188,7 +188,7 @@ export default function ClientEditor({ client, statuts, initialFiche }: { client
               <div class="pf-fields">
                 {forAdmin(STEPS[k].fields).map((d, i) => <Field key={k + i} def={d} ctx={{ f, err: {}, set, mode }} />)}
               </div>
-              {k === 'financement' && <Endettement f={f} />}
+              {k === 'financement' && <Endettement f={f} set={set} />}
             </section>
           ))}
         </div>
@@ -206,7 +206,7 @@ const eurFr = (n: number) => n.toLocaleString('fr-FR') + ' €';
 const pctFr = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' %';
 
 /** Taux d'endettement recalculé à chaque saisie (revenus, loyers, pensions, crédits, mensualité du projet). */
-function Endettement({ f }: { f: FormState }) {
+function Endettement({ f, set }: { f: FormState; set: (k: string, v: string) => void }) {
   const e = endettement(f);
   if (!e) return <div class="ce-debt ce-debt-empty">Renseignez les revenus pour calculer le taux d'endettement.</div>;
   const level = (t: number) => (t > TAUX_MAX ? 'over' : t > TAUX_MAX - 5 ? 'near' : 'ok');
@@ -220,8 +220,37 @@ function Endettement({ f }: { f: FormState }) {
         <div><span>Revenus retenus</span><strong>{eurFr(e.revenusRetenus)}</strong></div>
         {e.resteAVivre !== null && <div><span>Reste à vivre</span><strong>{eurFr(e.resteAVivre)}</strong></div>}
       </div>
+      <Capacite f={f} set={set} />
       {e.avecProjet !== null && e.avecProjet > TAUX_MAX && <p class="ce-debt-warn">Au-dessus de {TAUX_MAX} % : possible seulement par dérogation (20 % des crédits de chaque banque, réservés en priorité à la résidence principale et aux primo-accédants). Prévoir plus d'apport ou une mensualité plus faible.</p>}
       <p class="ce-debt-note">Norme HCSF : {TAUX_MAX} % maximum, assurance emprunteur comprise, sur les revenus nets avant impôt (hors primes exceptionnelles). Loyers perçus retenus à {PART_LOYERS * 100} %, pensions et rentes à 100 %. Estimation à confirmer par la banque ou le courtier.</p>
+    </div>
+  );
+}
+
+/** Capacité d'emprunt sur 20 et 25 ans, à partir de la mensualité encore possible. */
+function Capacite({ f, set }: { f: FormState; set: (k: string, v: string) => void }) {
+  const c = capacite(f);
+  if (!c) return null;
+  const rate = (k: 'taux20' | 'taux25' | 'tauxAssurance', label: string) => (
+    <label class="ce-rate"><span>{label}</span><span class="ce-rate-in"><input inputMode="decimal" value={f[k] || ''} placeholder={TAUX_DEFAUT[k]} onInput={(e) => set(k, (e.target as HTMLInputElement).value)} />%</span></label>
+  );
+  return (
+    <div class="ce-cap">
+      <h4>Capacité d'emprunt</h4>
+      <div class="ce-cap-grid">
+        {c.map((x) => (
+          <div key={x.ans} class="ce-cap-card">
+            <span class="ce-cap-d">Sur {x.ans} ans · {x.taux.toLocaleString('fr-FR')} %</span>
+            <strong>{eurFr(x.capital)}</strong>
+            <span>Budget avec apport : <b>{eurFr(x.budget)}</b></span>
+            <span>Prix de bien accessible : <b>{eurFr(x.prix)}</b></span>
+          </div>
+        ))}
+      </div>
+      <div class="ce-rates">
+        {rate('taux20', 'Taux 20 ans')}{rate('taux25', 'Taux 25 ans')}{rate('tauxAssurance', 'Assurance / an')}
+      </div>
+      <p class="ce-debt-note">Mensualité encore possible ({eurFr(endettement(f)!.mensualiteDisponible)}, assurance comprise) convertie en capital. Taux par défaut : moyennes d'octobre 2026 hors assurance, à ajuster selon le profil. Prix accessible : frais de notaire de 7,5 % (ancien) déduits.</p>
     </div>
   );
 }

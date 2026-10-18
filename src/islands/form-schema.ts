@@ -15,7 +15,7 @@ export type FieldDef =
 export const ARR = ['types', 'communes', 'proximites', 'etat', 'exterieur', 'stationnement', 'equipements', 'chauffage', 'ambiance', 'strategie', 'contactPref'];
 export const NUMK = ['budget', 'budgetMin', 'budgetTravaux', 'apport', 'pret', 'mensualite', 'revenus', 'loyersPercus', 'autresRevenus', 'credits', 'pensionsVersees', 'vprix'];
 export const INTK = ['surfaceMin', 'surfaceMax', 'terrainMin', 'nbLots', 'vsurface', 'vterrain', 'vpieces'];
-const STR = 'projet primo adultes enfants aVendre delai motivation communesAutres rayon lieuTravail trajetMax environnement budget budgetMin surfaceMin surfaceMax terrainMin piecesMin chambresMin sdbMin budgetTravaux dpe etage redhibitoire ideal rendementMin nbLots objectif occupation gestion dejaInvest financement situationPro anciennete situationCo ancienneteCo revenus loyersPercus autresRevenus credits pensionsVersees creditsDetail apport pret mensualite courtier vtype vadresse vsurface vterrain vpieces vetat vprix vdpe vdelai vmessage prenom nom email tel villeActuelle dispo alertes rdvDate rdvSlot'.split(' ');
+const STR = 'projet primo adultes enfants aVendre delai motivation communesAutres rayon lieuTravail trajetMax environnement budget budgetMin surfaceMin surfaceMax terrainMin piecesMin chambresMin sdbMin budgetTravaux dpe etage redhibitoire ideal rendementMin nbLots objectif occupation gestion dejaInvest financement situationPro anciennete situationCo ancienneteCo revenus loyersPercus autresRevenus credits pensionsVersees creditsDetail taux20 taux25 tauxAssurance apport pret mensualite courtier vtype vadresse vsurface vterrain vpieces vetat vprix vdpe vdelai vmessage prenom nom email tel villeActuelle dispo alertes rdvDate rdvSlot'.split(' ');
 
 export type FormState = Record<string, any>;
 export const EMPTY: FormState = {};
@@ -300,9 +300,29 @@ export function endettement(f: FormState) {
   };
 }
 
+// Capacité d'emprunt : capital que la mensualité encore possible (35 %, assurance comprise) permet de rembourser.
+// Taux par défaut : baromètres d'octobre 2026 (hors assurance) ; modifiables sur chaque fiche client.
+export const TAUX_DEFAUT = { taux20: '3,70', taux25: '3,80', tauxAssurance: '0,30' };
+export const FRAIS_NOTAIRE = 0.075; // ancien ; environ 2,5 % dans le neuf
+
+const dec = (v: string) => { const x = parseFloat(String(v ?? '').replace(',', '.').replace(/[^\d.]/g, '')); return isFinite(x) ? x : 0; };
+
+export function capacite(f: FormState) {
+  const e = endettement(f);
+  if (!e) return null;
+  const apport = Number(String(f.apport || '').replace(/\D/g, '')) || 0;
+  const assurance = dec(f.tauxAssurance || TAUX_DEFAUT.tauxAssurance) / 100;
+  return ([[20, 'taux20'], [25, 'taux25']] as const).map(([ans, k]) => {
+    const taux = dec(f[k] || TAUX_DEFAUT[k]), r = taux / 1200, n = ans * 12;
+    const facteur = (r ? r / (1 - Math.pow(1 + r, -n)) : 1 / n) + assurance / 12;
+    const capital = Math.round(e.mensualiteDisponible / facteur / 1000) * 1000;
+    return { ans, taux, assurance: assurance * 100, capital, budget: capital + apport, prix: Math.round((capital + apport) / (1 + FRAIS_NOTAIRE) / 1000) * 1000 };
+  });
+}
+
 const endettementFiche = (f: FormState) => {
   const e = endettement(f);
-  return e && { revenus_retenus_eur: e.revenusRetenus, taux_actuel_pct: e.actuel, taux_avec_projet_pct: e.avecProjet, mensualite_disponible_a_35_pct_eur: e.mensualiteDisponible, reste_a_vivre_eur: e.resteAVivre, regle: `HCSF ${TAUX_MAX} % max, assurance comprise, revenus nets avant impôt, loyers retenus à ${PART_LOYERS * 100} %` };
+  return e && { revenus_retenus_eur: e.revenusRetenus, taux_actuel_pct: e.actuel, taux_avec_projet_pct: e.avecProjet, mensualite_disponible_a_35_pct_eur: e.mensualiteDisponible, reste_a_vivre_eur: e.resteAVivre, capacite_emprunt: capacite(f)?.map((c) => ({ duree_ans: c.ans, taux_credit_pct: c.taux, taux_assurance_pct: c.assurance, capital_empruntable_eur: c.capital, budget_avec_apport_eur: c.budget, prix_bien_accessible_eur: c.prix })), regle: `HCSF ${TAUX_MAX} % max, assurance comprise, revenus nets avant impôt, loyers retenus à ${PART_LOYERS * 100} %` };
 };
 
 /** Fiche de recherche structurée (JSON) envoyée par email et enregistrée côté serveur. */
