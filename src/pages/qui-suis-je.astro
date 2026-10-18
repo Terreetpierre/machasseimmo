@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import Photo from '../components/Photo.astro';
+import { META, PHOTOS, VALEURS, PROJET_ACHAT } from '../data/site';
+const [title, description] = META.apropos;
+---
+<Base title={title} description={description} ogType="profile">
+  <section data-screen-label="Qui suis-je" class="wrap page-top about">
+    <div class="about-img"><Photo photo={PHOTOS.portrait} alt="Pierre Colas, chasseur immobilier et investisseur à Roanne" eager /></div>
+    <div class="about-text">
+      <p class="eyebrow">Qui suis-je</p>
+      <h1 class="heading">Pierre Colas, votre chasseur immobilier.</h1>
+      <p class="lead">Investisseur immobilier depuis 5 ans, j'ai piloté l'achat de plus de 40 logements : recherche, visites, négociation, travaux, mise en location. Avec Terre &amp; Pierre Immobilier, je mets cette expérience au service de vos projets à Roanne et dans ses alentours.</p>
+      <div class="valeurs">
+        {VALEURS.map((v) => <div><span class="t">{v.t}</span><span class="d">{v.d}</span></div>)}
+      </div>
+      <a href={PROJET_ACHAT} class="pill pill-accent">Travaillons ensemble</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .about { padding-bottom: clamp(72px, 10vw, 120px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: clamp(32px, 5vw, 80px); align-items: start; }
+  .about-img { aspect-ratio: 4 / 5; border-radius: 36px; overflow: hidden; background: var(--color-surface); }
+  .about-text { display: flex; flex-direction: column; gap: 24px; }
+  h1 { font-size: clamp(40px, 5.4vw, 76px); line-height: .98; letter-spacing: -.02em; }
+  .lead { line-height: 1.65; }
+  .valeurs { display: flex; flex-direction: column; border-top: 1px solid rgba(32, 30, 29, .16); margin-top: 8px; }
+  .valeurs div { padding: 20px 0; border-bottom: 1px solid rgba(32, 30, 29, .16); display: flex; flex-direction: column; gap: 6px; }
+  .t { font-size: 18px; font-weight: 600; }
+  .d { font-size: 15.5px; line-height: 1.55; color: var(--color-neutral-700); }
+  .pill { align-self: flex-start; }
+</style>

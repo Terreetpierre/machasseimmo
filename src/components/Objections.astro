@@ -1,0 +1,23 @@
+---
+import { OBJECTIONS } from '../data/site';
+---
+<section class="wrap obj-section">
+  <div class="obj-grid">
+    {OBJECTIONS.map((o) => (
+      <article style={`background:${o.bg}`}>
+        <span class="eyebrow">{o.k}</span>
+        <h2 class="heading">{o.t}</h2>
+        <ul class="checks">
+          {o.items.map((it) => <li><span class="tick" aria-hidden="true">✓</span>{it}</li>)}
+        </ul>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .obj-section { padding-bottom: clamp(72px, 10vw, 130px); }
+  .obj-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 20px; }
+  article { border-radius: 36px; padding: clamp(26px, 4vw, 44px); display: flex; flex-direction: column; gap: 18px; }
+  h2 { font-size: clamp(26px, 2.8vw, 36px); line-height: 1.08; }
+</style>

@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import { PROJET_ACHAT } from '../data/site';
+---
+<Base title="Page introuvable | Ton Chasseur Immo Roannais" description="Cette page n'existe pas ou a été déplacée." noindex>
+  <section class="wrap page-top nf">
+    <p class="eyebrow">Erreur 404</p>
+    <h1 class="page-h1">Ce bien n'est plus sur le marché.</h1>
+    <p class="lead">La page que vous cherchez n'existe pas ou a été déplacée.</p>
+    <div class="btns">
+      <a href="/" class="pill pill-accent">Retour à l'accueil</a>
+      <a href={PROJET_ACHAT} class="pill pill-outline">Décrire mon projet</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf { padding-bottom: clamp(72px, 10vw, 120px); display: flex; flex-direction: column; gap: 24px; }
+  h1 { max-width: 16ch; }
+  .btns { display: flex; flex-wrap: wrap; gap: 10px; }
+</style>

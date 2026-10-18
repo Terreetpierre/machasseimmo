@@ -1,0 +1,10 @@
+{
+  "name": "Ton Chasseur Immo Roannais",
+  "short_name": "Chasseur Immo",
+  "lang": "fr",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5ead8",
+  "theme_color": "#c67139",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

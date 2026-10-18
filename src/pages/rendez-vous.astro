@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+import RdvForm from '../islands/RdvForm';
+import { META, SITE } from '../data/site';
+const [title, description] = META.rdv;
+---
+<Base title={title} description={description} ctaBand={false} mobileBar={false}>
+  <section data-screen-label="Rendez-vous" class="rdv">
+    <div class="rdv-text">
+      <p class="eyebrow">Rendez-vous</p>
+      <h1 class="heading">Réservez un appel avec Pierre.</h1>
+      <p class="rdv-lead">20 minutes pour faire le point sur votre projet d'achat, d'investissement ou de vente. Gratuit et sans engagement.</p>
+      <ul>
+        <li><span aria-hidden="true">✓</span>Par téléphone, en visio ou sur place</li>
+        <li><span aria-hidden="true">✓</span>Créneau confirmé par SMS ou email</li>
+        <li><span aria-hidden="true">✓</span>Du lundi au samedi</li>
+      </ul>
+      <a href={SITE.whatsapp} target="_blank" rel="noopener" class="pill pill-sage wa">Plutôt WhatsApp ? Écrivez-moi</a>
+    </div>
+    <div class="rdv-form">
+      <RdvForm client:only="preact" />
+      <noscript><p>Ce formulaire nécessite JavaScript. Appelez-moi au {SITE.phone}.</p></noscript>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .rdv { max-width: 1180px; margin: 0 auto; padding: clamp(100px, 12vw, 140px) clamp(14px, 4vw, 40px) clamp(72px, 10vw, 120px); display: flex; flex-wrap: wrap; gap: clamp(24px, 4vw, 64px); align-items: flex-start; }
+  .rdv-text { flex: 1 1 300px; display: flex; flex-direction: column; gap: 22px; }
+  h1 { font-size: clamp(36px, 4.6vw, 60px); line-height: 1; letter-spacing: -.02em; }
+  .rdv-lead { font-size: 17px; line-height: 1.6; color: var(--color-neutral-800); }
+  ul { display: flex; flex-direction: column; gap: 12px; }
+  li { display: flex; gap: 12px; font-size: 16px; }
+  li span { flex: none; width: 24px; height: 24px; border-radius: 999px; background: var(--color-accent-2-200); color: var(--color-accent-2-800); display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .wa { align-self: flex-start; height: 50px; padding: 0 22px; font-size: 15px; }
+  .rdv-form { flex: 2 1 480px; min-width: 0; }
+</style>

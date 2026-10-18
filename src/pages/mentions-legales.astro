@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import { META, SITE } from '../data/site';
+const [title, description] = META.mentions;
+// TODO avant mise en ligne : compléter les trois passages entre crochets (voir TODO.md).
+const blocks = [
+  ['Éditeur du site', `Terre & Pierre Immobilier, société en nom collectif au capital de 100 €, SIREN 945 002 558, RCS Roanne. Siège : ${SITE.address.street}, ${SITE.address.postalCode} ${SITE.address.city}. Gérant : LIBERTINVEST, représentée par Pierre Colas, Président. Directeur de la publication : Pierre Colas. Contact : ${SITE.email} · ${SITE.phone}.`],
+  ['Activité de recherche immobilière', "Les mandats de recherche sont conclus par LIBERTINVEST, SAS au capital de 1 000 €, RCS Roanne 897 992 806, TVA FR49897992806, 20 rue Pierre Dépierre, 42300 Roanne. Carte professionnelle « Transaction sur immeubles et fonds de commerce » en cours d'obtention auprès de la CCI : aucun mandat n'est signé avant sa délivrance. Ne reçoit aucun fonds, effet ou valeur. Assurance responsabilité civile professionnelle : [assureur et n° de contrat à compléter]."],
+  ['Hébergement', "[Nom, adresse et téléphone de l'hébergeur à compléter]."],
+  ['Médiation de la consommation', "Conformément à l'article L.612-1 du Code de la consommation, vous pouvez recourir gratuitement à un médiateur de la consommation : [nom et coordonnées du médiateur à compléter]."],
+  ['Données personnelles', `Les informations saisies dans les formulaires (projet, critères, coordonnées) sont traitées par LIBERTINVEST pour gérer votre recherche ou votre estimation et vous recontacter. Base légale : mesures précontractuelles à votre demande. Elles ne sont ni vendues ni cédées. Durée de conservation : 3 ans après le dernier contact. Vous disposez d'un droit d'accès, de rectification, d'effacement, d'opposition et de portabilité en écrivant à ${SITE.email}, et pouvez saisir la CNIL (cnil.fr).`],
+  ['Cookies', "Ce site n'utilise que les cookies nécessaires à son fonctionnement. Tout outil de mesure d'audience sera soumis à votre consentement préalable. Les polices de caractères sont hébergées sur ce site : aucune donnée n'est transmise à un service tiers pour les afficher."],
+];
+---
+<Base title={title} description={description} ctaBand={false}>
+  <section data-screen-label="Mentions légales" class="page-top mentions">
+    <h1 class="heading">Mentions légales &amp; confidentialité</h1>
+    {blocks.map(([h, p]) => <div class="block"><h2>{h}</h2><p>{p}</p></div>)}
+  </section>
+</Base>
+
+<style>
+  .mentions { max-width: 860px; margin: 0 auto; padding-inline: clamp(18px, 4vw, 40px); padding-bottom: clamp(72px, 10vw, 120px); display: flex; flex-direction: column; gap: 28px; }
+  h1 { font-size: clamp(38px, 5vw, 64px); line-height: 1; letter-spacing: -.02em; }
+  .block { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(32, 30, 29, .14); padding-top: 22px; }
+  h2 { font-family: var(--font-body); font-size: 19px; font-weight: 700; letter-spacing: 0; }
+  p { font-size: 16px; line-height: 1.65; color: var(--color-neutral-800); }
+</style>

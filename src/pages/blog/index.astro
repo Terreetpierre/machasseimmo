@@ -1,0 +1,39 @@
+---
+import Base from '../../layouts/Base.astro';
+import Photo from '../../components/Photo.astro';
+import { META, ARTICLES } from '../../data/site';
+const [title, description] = META.blog;
+---
+<Base title={title} description={description}>
+  <section data-screen-label="Blog" class="wrap page-top blog">
+    <p class="eyebrow">Blog</p>
+    <h1 class="page-h1">Conseils immobiliers dans le Roannais.</h1>
+    <p class="lead">Acheter, investir, vendre : ce que 5 ans d'investissement et plus de 40 logements achetés m'ont appris.</p>
+    <div class="cards">
+      {ARTICLES.map((a) => (
+        <a href={`/blog/${a.slug}`} class="card-link">
+          <div class="card-img washed-soft"><Photo photo={a.photo} alt={`Illustration : ${a.t}`} /></div>
+          <span class="cat">{a.cat}</span>
+          <h2 class="heading">{a.t}</h2>
+          <p>{a.ex}</p>
+          <span class="meta">{a.meta}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .blog { padding-bottom: clamp(72px, 10vw, 120px); }
+  .eyebrow { margin-bottom: 18px; }
+  h1 { max-width: 16ch; }
+  .lead { margin: 26px 0 clamp(40px, 5vw, 64px); max-width: 560px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: clamp(28px, 3vw, 40px) 24px; }
+  .card-link { display: flex; flex-direction: column; gap: 14px; color: var(--color-text); }
+  .card-link:hover { opacity: .85; color: var(--color-text); }
+  .card-img { aspect-ratio: 16 / 10; border-radius: 32px; overflow: hidden; background: var(--color-surface); }
+  .cat { align-self: flex-start; font-size: 13px; padding: 4px 12px; border-radius: 999px; background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
+  h2 { font-size: 24px; line-height: 1.15; letter-spacing: -.01em; text-wrap: balance; }
+  p { font-size: 15.5px; line-height: 1.55; color: var(--color-neutral-700); }
+  .meta { font-size: 13.5px; color: var(--color-neutral-700); }
+</style>

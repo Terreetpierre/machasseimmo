@@ -1,0 +1,241 @@
+---
+import '../styles/global.css';
+import { SITE, NAV_LINKS, SEO_LINKS, KEYWORDS, OG_IMAGE, PROJET_ACHAT, PROJET_VENTE } from '../data/site';
+import CtaBand from '../components/CtaBand.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Accueil : en-tête transparent au-dessus de la photo plein écran. */
+  overHero?: boolean;
+  /** Bandeau « Prêt à trouver le bon bien ? » avant le pied de page. */
+  ctaBand?: boolean;
+  /** Barre fixe Appeler / WhatsApp / Mon projet sur mobile et tablette. */
+  mobileBar?: boolean;
+  jsonLd?: object;
+  ogType?: string;
+  noindex?: boolean;
+}
+
+const { title, description, overHero = false, ctaBand = true, mobileBar = true, jsonLd, ogType = 'website', noindex = false } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const canonical = new URL(path === '/' ? '/' : path + '/', SITE.url).href;
+const isActive = (href: string) => path === href || path.startsWith(href + '/');
+---
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <meta name="keywords" content={KEYWORDS}>
+  <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow'}>
+  <meta name="geo.region" content="FR-42">
+  <meta name="geo.placename" content="Roanne">
+  <link rel="canonical" href={canonical}>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="sitemap" href="/sitemap-index.xml">
+  <meta property="og:type" content={ogType}>
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:site_name" content={SITE.name}>
+  <meta property="og:url" content={canonical}>
+  <meta property="og:title" content={title}>
+  <meta property="og:description" content={description}>
+  <meta property="og:image" content={OG_IMAGE}>
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Couple souriant avec les clés de son nouveau logement">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#c67139">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content={SITE.name}>
+  <link rel="manifest" href="/manifest.webmanifest">
+  {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+</head>
+<body class:list={[{ 'has-mobile-bar': mobileBar }]}>
+  <header class:list={['site-header', { 'over-hero': overHero }]} data-header>
+    <div class="hdr-inner wrap">
+      <a href="/" class="brand">
+        <span class="brand-name">{SITE.name}</span>
+        <span class="brand-sub">{SITE.by}</span>
+      </a>
+      <nav class="hdr-nav" aria-label="Navigation principale">
+        {NAV_LINKS.map((l) => (
+          <a href={l.href} class:list={['hdr-link', { active: isActive(l.href) }]} aria-current={isActive(l.href) ? 'page' : undefined}>{l.label}</a>
+        ))}
+      </nav>
+      <a href={PROJET_ACHAT} class="hdr-cta">Décrire mon projet</a>
+      <button type="button" class="burger" aria-label="Menu" aria-expanded="false" aria-controls="menu" data-menu-open>
+        <span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <div id="menu" class="menu" hidden data-menu>
+    <div class="menu-top">
+      <span class="menu-brand">{SITE.name}</span>
+      <button type="button" class="menu-close" aria-label="Fermer" data-menu-close>×</button>
+    </div>
+    <nav class="menu-nav" aria-label="Menu">
+      <a href="/">Accueil</a>
+      {NAV_LINKS.map((l) => <a href={l.href}>{l.label}</a>)}
+    </nav>
+    <div class="menu-actions">
+      <a href={PROJET_ACHAT} class="pill pill-cream">Décrire mon projet d'achat</a>
+      <a href={PROJET_VENTE} class="pill pill-outline-light">Faire estimer mon bien</a>
+      <a href="/rendez-vous" class="pill pill-accent">Prendre rendez-vous</a>
+    </div>
+  </div>
+
+  <main>
+    <slot />
+    {ctaBand && <CtaBand />}
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <div class="footer-cols">
+        <div class="footer-col">
+          <span class="footer-brand">{SITE.name}</span>
+          <span class="footer-muted">{SITE.by}<br>Chasseur immobilier indépendant à Roanne (42300)</span>
+        </div>
+        <div class="footer-col">
+          <span class="footer-title">Services</span>
+          <a href="/acheter">Acheter</a>
+          <a href="/investir">Investissement locatif</a>
+          <a href="/vendre">Vendre / Estimer</a>
+          <a href="/honoraires">Honoraires</a>
+        </div>
+        <div class="footer-col">
+          <span class="footer-title">Informations</span>
+          <a href="/qui-suis-je">Qui suis-je</a>
+          <a href="/blog">Blog conseils</a>
+          <a href="/faq">FAQ</a>
+          <a href="/mentions-legales">Mentions légales &amp; confidentialité</a>
+        </div>
+        <div class="footer-col">
+          <span class="footer-title">Contact</span>
+          <span>{SITE.person}</span>
+          <a href={SITE.phoneHref}>{SITE.phone}</a>
+          <a href={SITE.whatsapp} target="_blank" rel="noopener">WhatsApp</a>
+          <a href="/rendez-vous">Prendre rendez-vous</a>
+          <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+          <span>{SITE.hours}</span>
+        </div>
+      </div>
+      <div class="seo-links">
+        {SEO_LINKS.map((l) => <span>{l}</span>)}
+      </div>
+      <span class="footer-agency">Ton Chasseur Immo Roannais n'est pas une agence immobilière : je travaille uniquement pour vous, l'acheteur.</span>
+      <span class="footer-legal">© {new Date().getFullYear()} Terre &amp; Pierre Immobilier (SNC, SIREN 945 002 558) · Mandats : LIBERTINVEST (SAS, RCS Roanne 897 992 806) · Carte professionnelle en cours d'obtention</span>
+    </div>
+  </footer>
+
+  {mobileBar && (
+    <div class="mobile-bar">
+      <a href={SITE.phoneHref} class="mb-call">Appeler</a>
+      <a href={SITE.whatsapp} target="_blank" rel="noopener" class="mb-wa">WhatsApp</a>
+      <a href={PROJET_ACHAT} class="mb-projet">Mon projet</a>
+    </div>
+  )}
+
+  <a href={SITE.whatsapp} target="_blank" rel="noopener" aria-label="WhatsApp" class="wa-float"><span></span>WhatsApp</a>
+
+  <script>
+    const header = document.querySelector<HTMLElement>('[data-header]');
+    if (header?.classList.contains('over-hero')) {
+      const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 30);
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+    }
+    const menu = document.querySelector<HTMLElement>('[data-menu]');
+    const opener = document.querySelector<HTMLButtonElement>('[data-menu-open]');
+    const setMenu = (open: boolean) => {
+      if (!menu) return;
+      menu.hidden = !open;
+      document.body.classList.toggle('menu-open', open);
+      opener?.setAttribute('aria-expanded', String(open));
+      if (open) menu.querySelector<HTMLElement>('[data-menu-close]')?.focus();
+      else opener?.focus();
+    };
+    opener?.addEventListener('click', () => setMenu(true));
+    document.querySelector('[data-menu-close]')?.addEventListener('click', () => setMenu(false));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu && !menu.hidden) setMenu(false); });
+  </script>
+</body>
+</html>
+
+<style>
+  /* — En-tête — */
+  .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 40; background: rgba(245, 234, 216, .92); border-bottom: 1px solid rgba(32, 30, 29, .08); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: background .3s, border-color .3s; --hdr-fg: var(--color-text); --hdr-hover: rgba(32, 30, 29, .06); }
+  .site-header.over-hero:not(.scrolled) { background: transparent; border-bottom-color: transparent; --hdr-fg: var(--color-neutral-100); --hdr-hover: rgba(255, 255, 255, .14); }
+  .hdr-inner { padding-block: 14px; display: flex; align-items: center; gap: 24px; }
+  .brand { display: flex; flex-direction: column; gap: 3px; color: var(--hdr-fg); line-height: 1; margin-right: auto; min-width: 0; flex: 0 1 auto; }
+  .brand:hover { color: var(--hdr-fg); }
+  .brand-name { font-family: var(--font-heading); font-weight: 400; font-size: 21px; letter-spacing: -.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+  .hdr-nav { display: flex; gap: 4px; }
+  .hdr-link { padding: 10px 14px; border-radius: 999px; white-space: nowrap; font-size: 15px; font-weight: 500; color: var(--hdr-fg); }
+  .hdr-link:hover { background: var(--hdr-hover); color: var(--hdr-fg); }
+  .hdr-link.active { font-weight: 700; background: var(--hdr-hover); }
+  .hdr-cta { height: 46px; padding: 0 22px; border-radius: 999px; background: var(--color-accent); color: var(--color-neutral-100); font-size: 15px; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; }
+  .hdr-cta:hover { background: var(--color-accent-600); color: var(--color-neutral-100); }
+  .site-header.over-hero:not(.scrolled) .hdr-cta { background: var(--color-neutral-100); color: var(--color-text); }
+  .burger { display: none; width: 46px; height: 46px; flex: none; border-radius: 999px; border: 1px solid var(--hdr-fg); background: transparent; cursor: pointer; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+  .burger span { width: 16px; height: 1.5px; background: var(--hdr-fg); }
+  @media (max-width: 1099.98px) {
+    .hdr-nav { display: none; }
+    .burger { display: flex; }
+  }
+  @media (max-width: 639.98px) {
+    .hdr-inner { gap: 12px; }
+    .brand-name { font-size: 18px; }
+    .brand-sub { font-size: 11px; }
+    .hdr-cta { display: none; }
+  }
+
+  /* — Menu plein écran — */
+  .menu { position: fixed; inset: 0; z-index: 60; background: var(--color-accent-2-700); color: var(--color-bg); display: flex; flex-direction: column; padding: 14px clamp(18px, 4vw, 40px) 28px; overflow: auto; animation: tci-up .3s ease; }
+  .menu[hidden] { display: none; }
+  .menu-top { display: flex; justify-content: space-between; align-items: center; }
+  .menu-brand { font-family: var(--font-heading); font-size: 21px; letter-spacing: -.03em; }
+  .menu-close { width: 46px; height: 46px; border-radius: 999px; border: 1px solid var(--color-bg); background: transparent; color: var(--color-bg); font-size: 22px; cursor: pointer; }
+  .menu-nav { display: flex; flex-direction: column; margin: auto 0; padding: 32px 0; }
+  .menu-nav a { color: var(--color-bg); font-family: var(--font-heading); font-size: 40px; letter-spacing: -.03em; padding: 10px 0; border-bottom: 1px solid rgba(245, 234, 216, .15); }
+  .menu-nav a:hover { color: var(--color-accent-2-200); }
+  .menu-actions { display: flex; flex-direction: column; gap: 10px; }
+  .menu-actions .pill { width: 100%; }
+
+  /* — Pied de page — */
+  .site-footer { border-top: 1px solid rgba(32, 30, 29, .1); background: var(--color-bg); }
+  .footer-inner { padding-top: 56px; padding-bottom: 40px; display: flex; flex-direction: column; gap: 40px; }
+  .footer-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 32px; }
+  .footer-col { display: flex; flex-direction: column; gap: 10px; font-size: 14.5px; color: var(--color-neutral-800); }
+  .footer-col a { color: var(--color-neutral-800); }
+  .footer-col a:hover { color: var(--color-accent-700); }
+  .footer-brand { font-family: var(--font-heading); font-size: 21px; letter-spacing: -.03em; color: var(--color-text); }
+  .footer-muted { line-height: 1.55; color: var(--color-neutral-700); }
+  .footer-title { font-size: 14px; font-weight: 700; color: var(--color-text); }
+  .seo-links { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--color-neutral-700); border-top: 1px solid rgba(32, 30, 29, .1); padding-top: 24px; }
+  .footer-agency { font-size: 13px; color: var(--color-neutral-800); font-weight: 600; }
+  .footer-legal { font-size: 13px; color: var(--color-neutral-700); }
+
+  /* — Barre mobile & WhatsApp flottant — */
+  .mobile-bar { display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: rgba(245, 234, 216, .94); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-top: 1px solid rgba(32, 30, 29, .1); gap: 8px; }
+  .mobile-bar a { height: 52px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; }
+  .mb-call { flex: 0 0 auto; padding: 0 16px; border: 1px solid rgba(32, 30, 29, .2); }
+  .mb-wa { flex: 0 0 auto; padding: 0 16px; background: var(--color-accent-2-200); color: var(--color-accent-2-800); }
+  .mb-projet { flex: 1; background: var(--color-accent); color: var(--color-neutral-100); font-size: 15.5px !important; }
+  .mb-projet:hover { color: var(--color-neutral-100); background: var(--color-accent-600); }
+  .wa-float { position: fixed; right: 24px; bottom: 24px; z-index: 30; height: 56px; padding: 0 24px; border-radius: 999px; background: var(--color-accent-2); color: var(--color-neutral-100); font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow-lg); }
+  .wa-float:hover { background: var(--color-accent-2-700); color: var(--color-neutral-100); }
+  .wa-float span { width: 10px; height: 10px; border-radius: 999px; background: var(--color-accent-2-200); }
+  @media (max-width: 1099.98px) {
+    .mobile-bar { display: flex; }
+    .wa-float { display: none; }
+    .has-mobile-bar .footer-inner { padding-bottom: 110px; }
+  }
+</style>

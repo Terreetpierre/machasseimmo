@@ -1,0 +1,74 @@
+---
+import Base from '../layouts/Base.astro';
+import Photo from '../components/Photo.astro';
+import OffMarket from '../components/OffMarket.astro';
+import Objections from '../components/Objections.astro';
+import Simulators from '../islands/Simulators';
+import { META, PHOTOS, DISTANCE, CHECKLIST, PROJET_INVEST } from '../data/site';
+const [title, description] = META.investir;
+---
+<Base title={title} description={description}>
+  <section data-screen-label="Investir" class="wrap page-top intro">
+    <div class="intro-text">
+      <p class="eyebrow">Investisseurs · Immeubles de rapport · À distance</p>
+      <h1 class="heading">Investir dans le Roannais, même à 500 km.</h1>
+      <p class="lead">Je suis investisseur avant d'être chasseur : plus de 40 logements achetés en 5 ans. Je cherche pour vous des biens dont les chiffres tiennent, je chiffre les travaux, je négocie, et vous signez sans multiplier les allers-retours.</p>
+      <div class="btns">
+        <a href={PROJET_INVEST} class="pill pill-accent">Décrire mon projet d'investissement</a>
+        <a href="#simulateurs" class="pill pill-outline">Simuler ma rentabilité</a>
+      </div>
+    </div>
+    <div class="intro-img washed-soft"><Photo photo={PHOTOS.investir} alt="Façade d'immeuble ancien en pierre avec balcons, type immeuble de rapport" eager /></div>
+  </section>
+
+  <section class="wrap distance">
+    <h2 class="heading">Investir à distance, sans vous déplacer.</h2>
+    <ol>
+      {DISTANCE.map((d) => <li><span class="n">{d.n}</span><span class="t">{d.t}</span><span class="d">{d.d}</span></li>)}
+    </ol>
+  </section>
+
+  <div class="om-wrap"><OffMarket cta="Recevoir les biens off-market" href={PROJET_INVEST} /></div>
+
+  <section id="simulateurs" class="sims">
+    <div class="wrap sims-inner">
+      <Simulators client:load />
+    </div>
+  </section>
+
+  <section class="wrap checklist">
+    <h2 class="heading">Ce que je regarde avant chaque offre</h2>
+    <ul>
+      {CHECKLIST.map((c) => <li><span class="t">{c.t}</span><span class="d">{c.d}</span></li>)}
+    </ul>
+  </section>
+
+  <div class="obj-wrap"><Objections /></div>
+</Base>
+
+<style>
+  .intro { padding-bottom: clamp(48px, 6vw, 72px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: clamp(32px, 5vw, 72px); align-items: center; }
+  .intro-text { display: flex; flex-direction: column; gap: 22px; }
+  h1 { font-size: clamp(40px, 6vw, 80px); line-height: .98; letter-spacing: -.02em; text-wrap: balance; }
+  .lead { max-width: 540px; }
+  .btns { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btns .pill { padding: 0 28px; }
+  .intro-img { aspect-ratio: 4 / 3; border-radius: 36px; overflow: hidden; background: var(--color-surface); }
+  .distance { padding-top: clamp(24px, 4vw, 48px); padding-bottom: clamp(72px, 10vw, 120px); }
+  .distance h2 { margin-bottom: 32px; font-size: clamp(30px, 3.6vw, 48px); line-height: 1.05; max-width: 20ch; }
+  .distance ol { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; }
+  .distance li { border-radius: 28px; background: var(--color-surface); padding: 26px; display: flex; flex-direction: column; gap: 12px; }
+  .distance .n { width: 44px; height: 44px; border-radius: 999px; background: var(--color-accent-2-700); color: var(--color-neutral-100); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+  .distance .t { font-size: 18px; font-weight: 700; }
+  .distance .d { font-size: 15.5px; line-height: 1.55; color: var(--color-neutral-800); }
+  .om-wrap { padding-bottom: clamp(72px, 10vw, 120px); }
+  .sims { background: var(--color-accent-2-700); color: var(--color-bg); scroll-margin-top: 80px; }
+  .sims-inner { padding-block: clamp(72px, 10vw, 120px); }
+  .checklist { padding-top: clamp(72px, 10vw, 120px); }
+  .checklist h2 { margin-bottom: 32px; font-size: clamp(30px, 3.6vw, 48px); line-height: 1.05; }
+  .checklist ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 0 48px; }
+  .checklist li { display: flex; flex-direction: column; gap: 4px; padding: 20px 0; border-top: 1px solid rgba(32, 30, 29, .14); }
+  .checklist .t { font-size: 17px; font-weight: 600; }
+  .checklist .d { font-size: 15px; line-height: 1.5; color: var(--color-neutral-700); }
+  .obj-wrap { padding-top: clamp(56px, 8vw, 96px); }
+</style>

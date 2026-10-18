@@ -1,0 +1,28 @@
+---
+// Photo en cover dans son cadre, avec le crédit du photographe en bas à gauche
+// (remplace l'<image-slot> de la maquette).
+import type { Photo } from '../data/site';
+
+interface Props {
+  photo: Photo;
+  alt: string;
+  eager?: boolean;
+  sizes?: string;
+  class?: string;
+}
+const { photo, alt, eager = false, class: cls } = Astro.props;
+---
+<div class:list={['photo', cls]}>
+  <img src={photo.src} alt={alt} loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : undefined} decoding="async" />
+  {photo.credit && (
+    <span class="credit">{photo.creditHref ? <a href={photo.creditHref} target="_blank" rel="noopener">{photo.credit}</a> : photo.credit}</span>
+  )}
+</div>
+
+<style>
+  .photo { position: relative; width: 100%; height: 100%; overflow: hidden; }
+  img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .credit { position: absolute; left: 6px; bottom: 6px; max-width: calc(100% - 12px); padding: 3px 7px; border-radius: 5px; background: rgba(0, 0, 0, .55); color: #fff; font: 10px/1.2 system-ui, -apple-system, sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; backdrop-filter: blur(6px); }
+  .credit a { color: inherit; }
+  .credit a:hover { text-decoration: underline; color: inherit; }
+</style>

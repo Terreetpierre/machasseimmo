@@ -1,0 +1,62 @@
+---
+import Base from '../../layouts/Base.astro';
+import Photo from '../../components/Photo.astro';
+import { ARTICLES, SITE, PROJET_ACHAT, type Article } from '../../data/site';
+
+export function getStaticPaths() {
+  return ARTICLES.map((article) => ({ params: { slug: article.slug }, props: { article } }));
+}
+
+const { article } = Astro.props as { article: Article };
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: article.t,
+  description: article.ex,
+  image: article.photo.src,
+  author: { '@type': 'Person', name: SITE.person },
+  publisher: { '@type': 'Organization', name: SITE.name },
+  mainEntityOfPage: `${SITE.url}/blog/${article.slug}/`,
+};
+---
+<Base title={`${article.t} | ${SITE.name}`} description={article.ex} ogType="article" jsonLd={jsonLd}>
+  <article data-screen-label="Article" class="art">
+    <a href="/blog" class="back">← Tous les articles</a>
+    <span class="cat">{article.cat}</span>
+    <h1 class="heading">{article.t}</h1>
+    <span class="by">Par Pierre Colas · {article.meta}</span>
+    <div class="art-img washed-soft"><Photo photo={article.photo} alt={`Illustration : ${article.t}`} eager /></div>
+    <p class="chapo">{article.ex}</p>
+    {article.body.map((b) => (
+      <Fragment><h2 class="heading">{b.h}</h2><p class="txt">{b.p}</p></Fragment>
+    ))}
+    <div class="art-cta">
+      <h2 class="heading">Un projet à Roanne ?</h2>
+      <p>Parlons-en 20 minutes, gratuitement et sans engagement.</p>
+      <div class="art-cta-btns">
+        <a href="/rendez-vous" class="pill pill-accent">Prendre rendez-vous</a>
+        <a href={PROJET_ACHAT} class="pill pill-outline">Décrire mon projet</a>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .art { max-width: 780px; margin: 0 auto; padding: clamp(110px, 13vw, 150px) clamp(18px, 4vw, 40px) clamp(56px, 7vw, 90px); display: flex; flex-direction: column; gap: 22px; animation: tci-up .4s ease; }
+  .back { font-size: 15px; font-weight: 600; color: var(--color-accent-700); }
+  .back:hover { color: var(--color-accent-800); }
+  .cat { align-self: flex-start; font-size: 13px; padding: 4px 12px; border-radius: 999px; background: var(--color-accent-2-100); color: var(--color-accent-2-800); }
+  h1 { font-size: clamp(36px, 5vw, 64px); line-height: 1.02; letter-spacing: -.02em; text-wrap: balance; }
+  .by { font-size: 14.5px; color: var(--color-neutral-700); }
+  .art-img { aspect-ratio: 16 / 9; border-radius: 36px; overflow: hidden; background: var(--color-surface); margin: 10px 0; }
+  .chapo { font-size: 20px; line-height: 1.6; text-wrap: pretty; }
+  h2 { margin-top: 18px; font-size: 28px; letter-spacing: -.01em; }
+  .txt { font-size: 17px; line-height: 1.75; color: var(--color-neutral-800); text-wrap: pretty; }
+  .art-cta { margin-top: 24px; border-radius: 36px; background: var(--color-surface); padding: clamp(24px, 4vw, 40px); display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+  .art-cta h2 { margin: 0; }
+  .art-cta p { font-size: 16px; line-height: 1.6; color: var(--color-neutral-800); }
+  .art-cta-btns { display: flex; flex-wrap: wrap; gap: 10px; }
+  .art-cta .pill { height: 52px; padding: 0 26px; font-size: 15px; }
+  .art-cta .pill-outline { border-color: rgba(32, 30, 29, .2); }
+  .art-cta .pill-outline:hover { background: var(--color-neutral-200); }
+</style>

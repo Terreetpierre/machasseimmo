@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import Faq from '../components/Faq.astro';
+import { META, FAQ } from '../data/site';
+const [title, description] = META.faq;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
+};
+---
+<Base title={title} description={description} jsonLd={jsonLd}>
+  <section data-screen-label="FAQ" class="page-top faq-page">
+    <p class="eyebrow">FAQ</p>
+    <h1 class="page-h1">Questions fréquentes</h1>
+    <Faq items={FAQ} />
+  </section>
+</Base>
+
+<style>
+  .faq-page { max-width: 960px; margin: 0 auto; padding-inline: clamp(18px, 4vw, 40px); padding-bottom: clamp(72px, 10vw, 120px); }
+  .eyebrow { margin-bottom: 18px; }
+  h1 { margin-bottom: 40px; }
+</style>

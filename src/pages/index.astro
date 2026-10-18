@@ -1,0 +1,325 @@
+---
+import Base from '../layouts/Base.astro';
+import Photo from '../components/Photo.astro';
+import NotAgency from '../components/NotAgency.astro';
+import OffMarket from '../components/OffMarket.astro';
+import Objections from '../components/Objections.astro';
+import Faq from '../components/Faq.astro';
+import {
+  SITE, META, PHOTOS, ENVIES, BENEFITS, SERVICES, RECHERCHES, STEPS, COMMUNES_AFFICHEES, FAQ, OFFER,
+  PROJET_ACHAT, PROJET_VENTE,
+} from '../data/site';
+
+const [title, description] = META.accueil;
+const tones = {
+  accent: ['var(--color-accent-200)', 'var(--color-accent-800)'],
+  sage: ['var(--color-accent-2-200)', 'var(--color-accent-2-800)'],
+  neutral: ['var(--color-neutral-200)', 'var(--color-neutral-800)'],
+};
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'RealEstateAgent',
+  name: `${SITE.name} — ${SITE.by.replace(/^Par /, '')}`,
+  url: SITE.url + '/',
+  image: PHOTOS.hero.src,
+  telephone: SITE.phoneIntl,
+  email: SITE.email,
+  founder: { '@type': 'Person', name: SITE.person },
+  description: "Chasseur immobilier indépendant (pas une agence immobilière) à Roanne : recherche, visites, négociation et accompagnement jusqu'à l'acte. Achat, investissement locatif et vente.",
+  address: { '@type': 'PostalAddress', streetAddress: SITE.address.street, addressLocality: SITE.address.city, postalCode: SITE.address.postalCode, addressRegion: SITE.address.region, addressCountry: 'FR' },
+  areaServed: ['Roanne', 'Riorges', 'Mably', 'Le Coteau', 'Villerest', 'Commelle-Vernay', 'Perreux', 'Renaison', 'Charlieu'],
+  knowsAbout: ['Chasse immobilière', "Achat d'immeuble", 'Immeuble de rapport', 'Achat immobilier', 'Investissement locatif', 'Estimation immobilière', 'Vente immobilière'],
+};
+---
+<Base title={title} description={description} overHero jsonLd={jsonLd}>
+  <section data-screen-label="Accueil" class="hero">
+    <div class="hero-bg washed-soft">
+      <Photo photo={PHOTOS.hero} alt="Couple souriant tenant les clés de son nouveau logement" eager />
+    </div>
+    <div class="hero-shade" aria-hidden="true"></div>
+    <div class="hero-inner wrap">
+      <p class="hero-kicker">Chasseur immobilier à Roanne et ses alentours</p>
+      <h1 class="heading">Je cherche<br>Je négocie<br>Vous achetez</h1>
+      <p class="hero-lead">Votre chasseur immobilier cherche un bien, y compris parmi les biens off-market, le visite, vous conseille et négocie pour vous. Vous n'avez plus qu'à choisir en toute sérénité.</p>
+      <form class="hero-search" action="/projet" method="get">
+        <label class="hs-field">
+          <span>Projet</span>
+          <select name="projet">
+            <option value="">Acheter ou investir ?</option>
+            <option>Résidence principale</option>
+            <option>Résidence secondaire</option>
+            <option>Investissement locatif</option>
+          </select>
+        </label>
+        <label class="hs-field">
+          <span>Secteur</span>
+          <input name="communesAutres" placeholder="Roanne, Riorges, Mably…" aria-label="Secteur recherché">
+        </label>
+        <label class="hs-field hs-budget">
+          <span>Budget max.</span>
+          <input name="budget" inputmode="numeric" placeholder="250 000 €" aria-label="Budget maximum">
+        </label>
+        <button type="submit" class="hs-submit">Décrire mon projet</button>
+      </form>
+      <a href="/investir" class="hero-invest"><span>Investisseur</span>Immeubles de rapport, investissement à distance : simulez votre rentabilité →</a>
+      <a href={PROJET_VENTE} class="hero-sell">Vous vendez ? Estimation gratuite de votre bien</a>
+    </div>
+  </section>
+
+  <section class="wrap envies">
+    <h2 class="heading">Que cherchez-vous ?</h2>
+    <div class="envies-row">
+      {ENVIES.map((e) => (
+        <a href={e.href} class="envie">
+          <span class="envie-k" style={`background:${tones[e.tone][0]};color:${tones[e.tone][1]}`}>{e.k}</span>{e.t}
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <div class="sp-top"><OffMarket cta="Accéder aux biens off-market" href={PROJET_ACHAT} /></div>
+
+  <section class="wrap why">
+    <p class="eyebrow">Pourquoi un chasseur immobilier ?</p>
+    <h2 class="display">Votre recherche, sans les week-ends perdus en visites.</h2>
+    <div class="benefits">
+      {BENEFITS.map((b) => (
+        <div class="benefit">
+          <span class="eyebrow">{b.n}</span>
+          <h3 class="heading">{b.t}</h3>
+          <p>{b.d}</p>
+        </div>
+      ))}
+    </div>
+    <div class="stats">
+      <div><span class="stat-n" style="color:var(--color-accent-700)">10 %</span><span>économisés en moyenne sur le prix affiché, grâce à la négociation</span></div>
+      <div><span class="stat-n" style="color:var(--color-accent-2-700)">+ de 40</span><span>logements achetés en tant qu'investisseur</span></div>
+      <div><span class="stat-n">{OFFER.studyPrice} €</span><span>l'étude de votre projet pour démarrer. Un engagement réciproque : je travaille sérieusement pour des clients qui ont un vrai projet.</span></div>
+    </div>
+  </section>
+
+  <section class="wrap note-section"><NotAgency /></section>
+
+  <section class="wrap services">
+    <div class="services-head">
+      <h2 class="display">Mes services</h2>
+      <p>Chasse, visite, estimation, mise en relation : un seul interlocuteur dans le Roannais.</p>
+    </div>
+    <div class="services-grid">
+      {SERVICES.map((s) => (
+        <a href={s.href} class="service">
+          <div class="service-img">
+            <Photo photo={s.photo} alt={s.alt} />
+            <span class="service-tag">{s.tag}</span>
+          </div>
+          <div class="service-body">
+            <h3 class="heading">{s.t}</h3>
+            <p>{s.d}</p>
+            <span class="service-cta">{s.cta}</span>
+          </div>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <Objections />
+
+  <section class="recherches">
+    <div class="wrap rech-head">
+      <div><p class="eyebrow">Vous vendez ?</p><h2 class="heading">Mes acheteurs recherchent en ce moment</h2></div>
+      <a href={PROJET_VENTE} class="rech-btn">Mon bien correspond →</a>
+    </div>
+    <div class="rech-row">
+      {RECHERCHES.map((r) => {
+        const inv = r.tag === 'Investissement';
+        return (
+          <article class="rech">
+            <div class="rech-top">
+              <span class="rech-tag" style={inv ? 'background:var(--color-accent-2-100);color:var(--color-accent-2-800)' : 'background:var(--color-accent-100);color:var(--color-accent-800)'}>{r.tag}</span>
+              <span class="rech-when">{r.when}</span>
+            </div>
+            <h3 class="heading">{r.t}</h3>
+            <span class="rech-lieu">{r.lieu}</span>
+            <div class="rech-crit">{r.crit.map((c) => <span>{c}</span>)}</div>
+            <div class="rech-budget"><span>Budget max.</span><span class="heading">{r.budget}</span></div>
+          </article>
+        );
+      })}
+    </div>
+    <p class="wrap rech-foot">Recherches anonymisées. Financement vérifié avant toute mise en relation.</p>
+  </section>
+
+  <section class="method">
+    <div class="wrap method-inner">
+      <p class="method-kicker">La méthode</p>
+      <h2 class="heading">Trois étapes jusqu'à la remise des clés.</h2>
+      <ol class="method-steps">
+        {STEPS.map((s) => (
+          <li>
+            <span class="step-n">{s.n}</span>
+            <h3 class="heading">{s.t}</h3>
+            <p>{s.d}</p>
+          </li>
+        ))}
+      </ol>
+      <a href={PROJET_ACHAT} class="pill pill-cream method-cta">Décrire mon projet</a>
+    </div>
+  </section>
+
+  <section class="wrap secteur">
+    <div class="secteur-grid">
+      <div class="secteur-text">
+        <p class="eyebrow">Secteur d'intervention</p>
+        <h2 class="display">Roanne et tout le Roannais.</h2>
+        <p class="secteur-p">J'interviens à Roanne et dans un rayon d'environ 30 km. Je connais les rues qui se louent, les quartiers qui se revendent et les prix réellement signés, pas ceux affichés.</p>
+        <ul class="communes">{COMMUNES_AFFICHEES.map((c) => <li>{c}</li>)}</ul>
+      </div>
+      <div class="secteur-img"><Photo photo={PHOTOS.roanne} alt="Théâtre municipal de Roanne" /></div>
+    </div>
+  </section>
+
+  <section class="teaser">
+    <div class="wrap teaser-inner">
+      <div class="teaser-img"><Photo photo={PHOTOS.portrait} alt="Portrait de Pierre Colas, chasseur immobilier à Roanne" /></div>
+      <div class="teaser-text">
+        <p class="eyebrow">Qui suis-je</p>
+        <p class="heading teaser-quote">« Plus de 40 logements achetés en 5 ans d'investissement. Je cherche le vôtre avec la même exigence. »</p>
+        <p class="teaser-sign">Pierre Colas — fondateur de Terre &amp; Pierre Immobilier</p>
+        <a href="/qui-suis-je" class="link-underline">Découvrir mon parcours</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq-section">
+    <h2 class="display">Vos questions</h2>
+    <Faq items={FAQ.slice(0, 4)} />
+    <a href="/faq" class="link-underline faq-all">Toutes les questions</a>
+  </section>
+</Base>
+
+<style>
+  /* — Hero plein écran — */
+  .hero { position: relative; min-height: 100vh; min-height: 100svh; background: var(--color-neutral-900); color: var(--color-neutral-100); display: flex; overflow: hidden; }
+  .hero-bg { position: absolute; inset: 0; }
+  .hero-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0, 0, 0, .42) 0%, rgba(0, 0, 0, 0) 28%, rgba(0, 0, 0, 0) 42%, rgba(0, 0, 0, .5) 100%); }
+  .hero-inner { position: relative; pointer-events: none; width: 100%; padding-top: 130px; padding-bottom: clamp(24px, 5vw, 56px); display: flex; flex-direction: column; justify-content: flex-end; gap: 22px; }
+  .hero-kicker { font-size: 14px; font-weight: 600; letter-spacing: .04em; text-shadow: 0 1px 12px rgba(0, 0, 0, .45); }
+  .hero h1 { font-size: clamp(44px, 7.6vw, 112px); line-height: .96; letter-spacing: -.02em; max-width: 13ch; text-wrap: balance; text-shadow: 0 2px 30px rgba(0, 0, 0, .25); }
+  .hero-lead { max-width: 520px; font-size: clamp(17px, 1.5vw, 20px); line-height: 1.5; text-wrap: pretty; text-shadow: 0 1px 14px rgba(0, 0, 0, .45); }
+  .hero-search { pointer-events: auto; margin-top: 10px; background: var(--color-neutral-100); color: var(--color-text); border-radius: 999px; padding: 8px; display: flex; flex-wrap: wrap; align-items: stretch; gap: 4px; max-width: 920px; box-shadow: 0 18px 50px rgba(0, 0, 0, .28); }
+  .hs-field { flex: 1 1 180px; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 10px 22px; border-radius: 999px; cursor: text; }
+  .hs-field:hover { background: var(--color-surface); }
+  .hs-budget { flex-basis: 150px; }
+  .hs-field > span { font-size: 13px; font-weight: 700; }
+  .hs-field select, .hs-field input { border: 0; background: transparent; font-size: 15px; padding: 0; outline: none; width: 100%; color: var(--color-neutral-800); }
+  .hs-field select { cursor: pointer; }
+  .hs-submit { flex: 1 1 200px; min-height: 60px; border-radius: 999px; border: 0; background: var(--color-accent); color: var(--color-neutral-100); font-size: 16px; font-weight: 600; cursor: pointer; padding: 0 26px; }
+  .hs-submit:hover { background: var(--color-accent-600); }
+  .hero-invest { pointer-events: auto; align-self: flex-start; display: flex; align-items: center; gap: 10px; padding: 10px 18px 10px 10px; border-radius: 999px; background: rgba(20, 18, 17, .45); backdrop-filter: blur(8px); color: var(--color-neutral-100); font-size: 15px; font-weight: 600; }
+  .hero-invest:hover { background: rgba(20, 18, 17, .62); color: var(--color-neutral-100); }
+  .hero-invest span { flex: none; padding: 4px 12px; border-radius: 999px; background: var(--color-accent-2-500); font-size: 13px; }
+  .hero-sell { pointer-events: auto; align-self: flex-start; color: var(--color-neutral-100); font-size: 15px; font-weight: 600; padding: 6px 0; text-decoration: underline; text-underline-offset: 4px; text-shadow: 0 1px 12px rgba(0, 0, 0, .45); }
+  .hero-sell:hover { color: var(--color-accent-200); }
+  @media (max-width: 1099.98px) {
+    .hero-inner { padding-bottom: 108px; }
+    .hero-search { border-radius: 28px; }
+  }
+
+  /* — Que cherchez-vous ? — */
+  .envies { padding-top: clamp(40px, 5vw, 64px); display: flex; flex-direction: column; gap: 18px; }
+  .envies h2 { font-size: clamp(24px, 2.6vw, 32px); }
+  .envies-row { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 2px 10px; scrollbar-width: none; }
+  .envies-row::-webkit-scrollbar { display: none; }
+  .envie { flex: none; scroll-snap-align: start; display: flex; align-items: center; gap: 12px; height: 60px; padding: 0 22px 0 8px; border-radius: 999px; border: 1px solid rgba(32, 30, 29, .14); background: var(--color-neutral-100); color: var(--color-text); font-size: 15.5px; font-weight: 600; white-space: nowrap; }
+  .envie:hover { background: var(--color-accent-100); border-color: var(--color-accent-300); color: var(--color-text); }
+  .envie:active { background: var(--color-accent-200); }
+  .envie-k { width: 44px; height: 44px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+
+  .sp-top { padding-top: clamp(72px, 10vw, 130px); }
+
+  /* — Pourquoi un chasseur — */
+  .why { padding-top: clamp(72px, 10vw, 130px); }
+  .why > .eyebrow { margin-bottom: 16px; }
+  .why .display { margin-bottom: clamp(36px, 5vw, 64px); max-width: 20ch; text-wrap: balance; }
+  .benefits { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: clamp(28px, 4vw, 56px); }
+  .benefit { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--color-text); padding-top: 22px; }
+  .benefit h3 { font-size: 24px; letter-spacing: -.02em; }
+  .benefit p { font-size: 16px; line-height: 1.6; color: var(--color-neutral-800); text-wrap: pretty; }
+  .stats { margin-top: clamp(40px, 5vw, 64px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 24px; border-radius: 36px; background: var(--color-surface); padding: clamp(24px, 4vw, 44px); }
+  .stats > div { display: flex; flex-direction: column; gap: 6px; font-size: 15.5px; line-height: 1.45; color: var(--color-neutral-800); }
+  .stat-n { font-family: var(--font-heading); font-size: clamp(40px, 5vw, 60px); line-height: 1; color: var(--color-text); }
+
+  .note-section { padding-top: clamp(48px, 6vw, 72px); }
+
+  /* — Services — */
+  .services { padding-block: clamp(72px, 10vw, 130px); }
+  .services-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 32px; }
+  .services-head p { max-width: 380px; font-size: 16px; line-height: 1.55; color: var(--color-neutral-800); }
+  .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 24px; }
+  @media (min-width: 640px) and (max-width: 1299.98px) { .services-grid { grid-template-columns: repeat(2, 1fr); } }
+  .service { display: flex; flex-direction: column; gap: 16px; color: var(--color-text); }
+  .service:hover { opacity: .85; color: var(--color-text); }
+  .service-img { position: relative; aspect-ratio: 4 / 3.4; border-radius: 32px; overflow: hidden; background: var(--color-surface); }
+  .service-tag { position: absolute; top: 16px; left: 16px; pointer-events: none; background: var(--color-neutral-100); border-radius: 999px; padding: 7px 14px; font-size: 13px; font-weight: 600; box-shadow: 0 2px 10px rgba(0, 0, 0, .12); }
+  .service-body { display: flex; flex-direction: column; gap: 6px; }
+  .service-body h3 { font-size: 22px; letter-spacing: -.02em; }
+  .service-body p { font-size: 15.5px; line-height: 1.55; color: var(--color-neutral-700); }
+  .service-cta { margin-top: 6px; font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+
+  /* — Recherches en cours — */
+  .recherches { padding-bottom: clamp(72px, 10vw, 130px); }
+  .rech-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 24px; }
+  .rech-head > div { display: flex; flex-direction: column; gap: 10px; }
+  .rech-head h2 { font-size: clamp(30px, 3.6vw, 48px); line-height: 1.05; }
+  .rech-btn { height: 48px; padding: 0 22px; border-radius: 999px; border: 1px solid rgba(32, 30, 29, .2); font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; }
+  .rech-btn:hover { background: var(--color-surface); color: var(--color-text); }
+  .rech-row { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 6px clamp(18px, 4vw, 40px) 14px; scroll-padding: 0 clamp(18px, 4vw, 40px); scrollbar-width: none; max-width: 1280px; margin: 0 auto; }
+  .rech-row::-webkit-scrollbar { display: none; }
+  .rech { flex: none; width: min(78vw, 300px); scroll-snap-align: start; border-radius: 32px; background: var(--color-neutral-100); box-shadow: var(--shadow-md); padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+  .rech-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .rech-tag { font-size: 13px; padding: 4px 12px; border-radius: 999px; }
+  .rech-when { font-size: 13px; color: var(--color-neutral-700); }
+  .rech h3 { font-size: 22px; line-height: 1.15; }
+  .rech-lieu { font-size: 15px; color: var(--color-neutral-800); }
+  .rech-crit { display: flex; flex-wrap: wrap; gap: 6px; }
+  .rech-crit span { font-size: 13px; padding: 5px 11px; border-radius: 999px; background: var(--color-neutral-200); }
+  .rech-budget { margin-top: auto; display: flex; justify-content: space-between; align-items: baseline; padding-top: 12px; border-top: 1px solid rgba(32, 30, 29, .08); }
+  .rech-budget span:first-child { font-size: 13px; color: var(--color-neutral-700); }
+  .rech-budget .heading { font-size: 22px; }
+  .rech-foot { margin-top: 6px; font-size: 13px; color: var(--color-neutral-700); }
+
+  /* — La méthode — */
+  .method { background: var(--color-accent-2-700); color: var(--color-bg); }
+  .method-inner { padding-block: clamp(72px, 10vw, 130px); }
+  .method-kicker { margin-bottom: 16px; font-size: 14px; font-weight: 600; opacity: .6; }
+  .method h2 { margin-bottom: clamp(36px, 5vw, 64px); font-size: clamp(28px, 3.9vw, 56px); line-height: 1.05; letter-spacing: -.015em; white-space: nowrap; text-wrap: balance; }
+  @media (max-width: 639.98px) { .method h2 { white-space: normal; } }
+  .method-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: clamp(24px, 3vw, 40px); }
+  .method-steps li { display: flex; flex-direction: column; gap: 14px; }
+  .step-n { width: 48px; height: 48px; border-radius: 999px; border: 1px solid rgba(245, 234, 216, .4); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; }
+  .method-steps h3 { font-size: 24px; letter-spacing: -.02em; }
+  .method-steps p { font-size: 16px; line-height: 1.6; opacity: .72; }
+  .method-cta { margin-top: clamp(40px, 5vw, 64px); }
+
+  /* — Secteur — */
+  .secteur { padding-block: clamp(72px, 10vw, 130px); }
+  .secteur-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: clamp(32px, 5vw, 72px); align-items: center; }
+  .secteur-text { display: flex; flex-direction: column; gap: 20px; }
+  .secteur-p { font-size: 17px; line-height: 1.6; color: var(--color-neutral-800); max-width: 46ch; }
+  .communes { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .communes li { padding: 9px 16px; border-radius: 999px; border: 1px solid rgba(32, 30, 29, .16); font-size: 14.5px; }
+  .secteur-img { aspect-ratio: 1 / 1; border-radius: 36px; overflow: hidden; background: var(--color-surface); }
+
+  /* — Qui suis-je (aperçu) — */
+  .teaser { background: var(--color-surface); }
+  .teaser-inner { padding-block: clamp(72px, 10vw, 130px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: clamp(32px, 5vw, 72px); align-items: center; }
+  .teaser-img { aspect-ratio: 4 / 5; max-width: 480px; width: 100%; border-radius: 36px; overflow: hidden; background: var(--color-neutral-300); }
+  .teaser-text { display: flex; flex-direction: column; gap: 22px; }
+  .teaser-quote { font-size: clamp(28px, 3.2vw, 44px); line-height: 1.12; letter-spacing: -.03em; text-wrap: pretty; }
+  .teaser-sign { font-size: 16px; color: var(--color-neutral-800); }
+
+  /* — FAQ — */
+  .faq-section { max-width: 960px; margin: 0 auto; padding: clamp(72px, 10vw, 130px) clamp(18px, 4vw, 40px); }
+  .faq-section h2 { margin-bottom: 32px; }
+  .faq-all { display: inline-block; margin-top: 28px; }
+</style>

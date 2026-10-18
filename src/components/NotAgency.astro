@@ -1,0 +1,8 @@
+---
+import { NOT_AGENCY } from '../data/site';
+const [lead, ...rest] = NOT_AGENCY.split(' : ');
+---
+<div role="note" class="note">
+  <span class="bang" aria-hidden="true">!</span>
+  <p><slot><strong>{lead} :</strong> {rest.join(' : ')}</slot></p>
+</div>

@@ -1,0 +1,26 @@
+---
+// Accordéon FAQ sur <details> : lisible sans JavaScript et par les moteurs de recherche.
+interface Props { items: [string, string][]; openFirst?: boolean }
+const { items, openFirst = true } = Astro.props;
+---
+<div class="faq">
+  {items.map(([q, a], i) => (
+    <details open={openFirst && i === 0}>
+      <summary>{q}<span class="sign" aria-hidden="true"></span></summary>
+      <p>{a}</p>
+    </details>
+  ))}
+</div>
+
+<style>
+  .faq { border-top: 1px solid rgba(32, 30, 29, .16); }
+  details { border-bottom: 1px solid rgba(32, 30, 29, .16); }
+  summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 24px 0; cursor: pointer; font-size: clamp(17px, 1.6vw, 20px); font-weight: 600; letter-spacing: -.01em; }
+  summary::-webkit-details-marker { display: none; }
+  .sign { flex: none; width: 36px; height: 36px; border-radius: 999px; border: 1px solid rgba(32, 30, 29, .2); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 400; }
+  .sign::before { content: '+'; }
+  details[open] .sign::before { content: '–'; }
+  summary:hover .sign { background: var(--color-surface); }
+  p { padding: 0 56px 26px 0; font-size: 16px; line-height: 1.65; color: var(--color-neutral-800); }
+  @media (max-width: 639.98px) { p { padding-right: 0; } }
+</style>

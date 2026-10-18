@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import ProjectForm from '../islands/ProjectForm';
+import { META } from '../data/site';
+const [title, description] = META.projet;
+---
+<Base title={title} description={description} ctaBand={false} mobileBar={false}>
+  <section data-screen-label="Décrire mon projet" class="projet">
+    <ProjectForm client:only="preact" />
+    <noscript><p class="nojs">Ce formulaire nécessite JavaScript. Vous pouvez aussi m'appeler au 07 63 00 94 60 ou écrire à contact@libertinvest.fr.</p></noscript>
+  </section>
+</Base>
+
+<style>
+  .projet { max-width: 1180px; margin: 0 auto; min-height: 100vh; padding: clamp(100px, 12vw, 140px) clamp(14px, 4vw, 40px) clamp(100px, 10vw, 120px); }
+  .nojs { font-size: 17px; line-height: 1.6; }
+</style>

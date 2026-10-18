@@ -1,0 +1,60 @@
+---
+import Base from '../layouts/Base.astro';
+import { META, PROFILS, INCLUS, PROJET_ACHAT } from '../data/site';
+const [title, description] = META.acheter;
+---
+<Base title={title} description={description}>
+  <section data-screen-label="Acheter" class="wrap page-top intro">
+    <p class="eyebrow">Acheter · Investir</p>
+    <h1 class="page-h1">Chasseur immobilier à Roanne, de la recherche à l'acte.</h1>
+    <p class="lead">Je défends uniquement vos intérêts d'acheteur : je trouve, je vérifie, je négocie et je vous accompagne jusqu'au notaire.</p>
+  </section>
+
+  <section class="wrap profils">
+    {PROFILS.map((p) => (
+      <article style={`background:${p.bg};color:${p.fg}`}>
+        <h2 class="heading">{p.t}</h2>
+        <p>{p.d}</p>
+        <ul>
+          {p.items.map((it) => <li><span class="tick" style={`border-color:${p.fg}`} aria-hidden="true">✓</span>{it}</li>)}
+        </ul>
+      </article>
+    ))}
+  </section>
+
+  <section class="inclus-section">
+    <div class="wrap inclus-inner">
+      <h2 class="heading">Ce qui est inclus</h2>
+      <ol class="inclus">
+        {INCLUS.map((it) => (
+          <li><span class="n">{it.n}</span><div><span class="t">{it.t}</span><span class="d">{it.d}</span></div></li>
+        ))}
+      </ol>
+      <a href={PROJET_ACHAT} class="pill pill-accent cta">Décrire mon projet</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .intro { padding-bottom: clamp(56px, 7vw, 90px); }
+  .intro .eyebrow { margin-bottom: 18px; }
+  .intro h1 { max-width: 15ch; text-wrap: balance; }
+  .intro .lead { margin-top: 26px; max-width: 560px; }
+  .profils { padding-bottom: clamp(72px, 10vw, 120px); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 24px; }
+  article { border-radius: 36px; padding: clamp(28px, 4vw, 48px); display: flex; flex-direction: column; gap: 20px; }
+  article h2 { font-size: clamp(30px, 3.2vw, 42px); letter-spacing: -.035em; line-height: 1.05; }
+  article > p { font-size: 16.5px; line-height: 1.6; opacity: .8; }
+  article ul { display: flex; flex-direction: column; gap: 12px; }
+  article li { display: flex; gap: 12px; font-size: 16px; line-height: 1.45; }
+  .tick { flex: none; width: 22px; height: 22px; border-radius: 999px; border: 1px solid; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+  .inclus-section { background: var(--color-surface); }
+  .inclus-inner { padding-block: clamp(72px, 10vw, 120px); }
+  .inclus-inner h2 { margin-bottom: 40px; font-size: clamp(32px, 4vw, 54px); letter-spacing: -.015em; line-height: 1.02; }
+  .inclus { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 0 48px; }
+  .inclus li { display: flex; gap: 18px; padding: 22px 0; border-top: 1px solid rgba(32, 30, 29, .14); }
+  .inclus .n { flex: none; font-size: 14px; font-weight: 600; color: var(--color-neutral-700); width: 24px; }
+  .inclus div { display: flex; flex-direction: column; gap: 4px; }
+  .inclus .t { font-size: 17px; font-weight: 600; }
+  .inclus .d { font-size: 15px; line-height: 1.5; color: var(--color-neutral-700); }
+  .cta { margin-top: 40px; }
+</style>

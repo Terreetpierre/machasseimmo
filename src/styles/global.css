@@ -1,0 +1,69 @@
+@import '@fontsource/caprasimo/400.css';
+@import '@fontsource/figtree/400.css';
+@import '@fontsource/figtree/500.css';
+@import '@fontsource/figtree/600.css';
+@import '@fontsource/figtree/700.css';
+@import './organic.css';
+
+/* Base de page (reprise du <helmet> de la maquette). */
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--color-bg); color: var(--color-text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; font-size: 16px; }
+* { box-sizing: border-box; }
+a { color: var(--color-text); text-decoration: none; }
+a:hover { color: var(--color-neutral-700); }
+input, select, textarea, button { font: inherit; color: inherit; }
+input::placeholder, textarea::placeholder { color: var(--color-neutral-500); }
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+h1, h2, h3, p { margin: 0; }
+ul, ol { list-style: none; margin: 0; padding: 0; }
+img { max-width: 100%; }
+body.menu-open { overflow: hidden; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@keyframes tci-spin { to { transform: rotate(360deg); } }
+@keyframes tci-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { animation: none !important; } }
+
+/* Gabarits */
+.wrap { max-width: 1280px; margin: 0 auto; padding-inline: clamp(18px, 4vw, 40px); }
+.page-top { padding-top: clamp(120px, 14vw, 170px); animation: tci-up .4s ease; }
+.grid-fit { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--min, 280px)), 1fr)); }
+
+/* Typo */
+.heading { font-family: var(--font-heading); font-weight: 400; }
+.eyebrow { font-size: 14px; font-weight: 600; color: var(--color-neutral-700); }
+.display { font-family: var(--font-heading); font-weight: 400; font-size: clamp(34px, 4.4vw, 60px); line-height: 1.02; letter-spacing: -.015em; }
+.page-h1 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(40px, 6vw, 84px); line-height: .98; letter-spacing: -.02em; }
+.lead { font-size: 18px; line-height: 1.6; color: var(--color-neutral-800); }
+.link-underline { font-size: 16px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
+
+/* Boutons pilule */
+.pill { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 56px; padding: 0 30px; border-radius: 999px; border: 0; font-family: var(--font-body); font-size: 16px; font-weight: 600; cursor: pointer; white-space: nowrap; text-decoration: none; transition: background .15s; }
+.pill-accent { background: var(--color-accent); color: var(--color-neutral-100); }
+.pill-accent:hover { background: var(--color-accent-600); color: var(--color-neutral-100); }
+.pill-accent:active { background: var(--color-accent-700); }
+.pill-cream { background: var(--color-bg); color: var(--color-text); }
+.pill-cream:hover { opacity: .88; color: var(--color-text); }
+.pill-light { background: var(--color-neutral-100); color: var(--color-text); }
+.pill-light:hover { background: var(--color-accent-100); color: var(--color-text); }
+.pill-light:active { background: var(--color-accent-200); }
+.pill-outline { background: transparent; color: var(--color-text); border: 1px solid rgba(32, 30, 29, .22); }
+.pill-outline:hover { background: var(--color-surface); color: var(--color-text); }
+.pill-outline-light { background: transparent; color: var(--color-bg); border: 1px solid rgba(245, 234, 216, .6); }
+.pill-outline-light:hover { background: rgba(245, 234, 216, .12); color: var(--color-bg); }
+.pill-sage { background: var(--color-accent-2-200); color: var(--color-accent-2-800); }
+.pill-sage:hover { background: var(--color-accent-2-300); color: var(--color-accent-2-800); }
+@media (max-width: 420px) { .pill { white-space: normal; text-align: center; line-height: 1.2; } }
+
+/* Listes à coches */
+.checks { display: flex; flex-direction: column; gap: 12px; }
+.checks li { display: flex; gap: 12px; font-size: 16px; line-height: 1.5; }
+.checks .tick { flex: none; width: 22px; height: 22px; margin-top: 1px; border-radius: 999px; background: var(--color-accent-2-700); color: var(--color-neutral-100); display: flex; align-items: center; justify-content: center; font-size: 13px; }
+
+/* Encadré « Je ne suis pas une agence » */
+.note { display: flex; gap: 16px; align-items: flex-start; border-radius: 28px; background: var(--color-accent-2-100); color: var(--color-accent-2-800); padding: 20px 24px; }
+.note .bang { flex: none; width: 30px; height: 30px; border-radius: 999px; background: var(--color-accent-2-700); color: var(--color-neutral-100); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; }
+.note p { font-size: 16px; line-height: 1.55; }
+
+/* Photos lavées (classe .washed du design system) */
+.washed-soft { filter: saturate(.6) contrast(.85) brightness(1.1); }
