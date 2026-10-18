@@ -11,7 +11,9 @@
 //   MAIL_FROM    facultatif ; par défaut « Ton Chasseur Immo <SMTP_USER> »
 import nodemailer from 'nodemailer';
 
-const env = (k: string) => (import.meta.env[k] as string | undefined) ?? process.env[k];
+const raw = (k: string) => ((import.meta.env[k] as string | undefined) ?? process.env[k])?.trim();
+// Google affiche le mot de passe d'application en 4 blocs (« abcd efgh ijkl mnop ») : on retire les espaces copiés avec.
+const env = (k: string) => (k === 'SMTP_PASS' && /gmail|googlemail/i.test(raw('SMTP_HOST') ?? '') ? raw(k)?.replace(/\s+/g, '') : raw(k));
 
 export const smtpConfigured = () => !!(env('SMTP_HOST') && env('SMTP_USER') && env('SMTP_PASS'));
 
@@ -37,6 +39,7 @@ export const destinataires = () => (env('MAIL_TO') || 'contact@libertinvest.fr')
 export function expliquer(e: unknown): string {
   const err = e as { code?: string; responseCode?: number; message?: string };
   const brut = `(${[err.code, err.responseCode].filter(Boolean).join(' ')} ${err.message ?? e})`.replace(/\s+/g, ' ');
+  if ((err.code === 'EAUTH' || err.responseCode === 534 || err.responseCode === 535) && /gmail/i.test(env('SMTP_HOST') ?? '')) return `Gmail refuse le mot de passe : SMTP_PASS doit être un « mot de passe d'application » de 16 lettres (myaccount.google.com/apppasswords, validation en deux étapes activée), pas le mot de passe habituel du compte. ${brut}`;
   if (err.code === 'EAUTH' || err.responseCode === 535) return `Identifiant ou mot de passe refusé par le serveur : vérifiez SMTP_USER (l'adresse complète) et SMTP_PASS. ${brut}`;
   if (err.code === 'EDNS' || /ENOTFOUND|EAI_AGAIN/.test(err.message ?? '')) return `Serveur d'envoi introuvable : SMTP_HOST est sans doute mal écrit. ${brut}`;
   if (err.code === 'ETIMEDOUT' || /timeout/i.test(err.message ?? '')) return `Le serveur ne répond pas : vérifiez SMTP_HOST et SMTP_PORT (essayez 465 puis 587). ${brut}`;
