@@ -1,0 +1,90 @@
+---
+// Diagnostic : vérifie les réglages Vercel, la base de données et l'envoi des alertes email,
+// et affiche l'erreur exacte en clair. Réservé à Pierre (connexion obligatoire).
+import Admin from '../../layouts/Admin.astro';
+import { isAdmin, MIN_PASSWORD } from '../../lib/auth';
+import { compterClients, hasDb } from '../../lib/db';
+import { destinataires, envoyer, smtpConfigured, verifierSmtp } from '../../lib/mailer';
+
+export const prerender = false;
+if (!isAdmin(Astro.cookies)) return Astro.redirect('/admin/login');
+
+const env = (k: string) => (import.meta.env[k] as string | undefined) ?? process.env[k];
+const present = (k: string) => !!env(k)?.trim();
+
+type Ligne = { ok: boolean | null; titre: string; detail: string };
+const reglages: Ligne[] = [
+  { ok: (env('ADMIN_PASSWORD') ?? '').length >= MIN_PASSWORD, titre: 'ADMIN_PASSWORD', detail: `Mot de passe du back-office (${MIN_PASSWORD} caractères minimum).` },
+  { ok: present('SESSION_SECRET') ? true : null, titre: 'SESSION_SECRET', detail: present('SESSION_SECRET') ? 'Présent.' : 'Recommandé (une longue chaîne aléatoire), pas obligatoire.' },
+  { ok: hasDb(), titre: 'DATABASE_URL', detail: 'Base de données du back-office (créée par Neon dans l’onglet Storage de Vercel).' },
+  { ok: present('SMTP_HOST'), titre: 'SMTP_HOST', detail: present('SMTP_HOST') ? `Serveur : ${env('SMTP_HOST')}` : 'Serveur d’envoi, ex. smtpout.secureserver.net chez GoDaddy.' },
+  { ok: present('SMTP_PORT') ? true : null, titre: 'SMTP_PORT', detail: present('SMTP_PORT') ? `Port : ${env('SMTP_PORT')}` : 'Non renseigné : 587 utilisé par défaut.' },
+  { ok: present('SMTP_USER'), titre: 'SMTP_USER', detail: present('SMTP_USER') ? `Boîte d’envoi : ${env('SMTP_USER')}` : 'Adresse complète de la boîte qui envoie.' },
+  { ok: present('SMTP_PASS'), titre: 'SMTP_PASS', detail: present('SMTP_PASS') ? `Présent (${env('SMTP_PASS')!.length} caractères${/^\s|\s$/.test(env('SMTP_PASS')!) ? ', ATTENTION : espace au début ou à la fin' : ''}).` : 'Mot de passe de la boîte d’envoi.' },
+  { ok: true, titre: 'MAIL_TO', detail: `Les alertes arrivent sur : ${destinataires().join(', ')}${present('MAIL_TO') ? '' : ' (valeur par défaut)'}` },
+  { ok: present('CLAUDE_API_TOKEN') ? (env('CLAUDE_API_TOKEN')!.length >= 24) : null, titre: 'CLAUDE_API_TOKEN', detail: 'Clé d’accès de Claude (24 caractères minimum). Facultatif tant que Claude n’est pas branché.' },
+];
+
+let base: Ligne;
+if (!hasDb()) base = { ok: false, titre: 'Base de données', detail: 'Non branchée : les demandes du site ne sont pas enregistrées.' };
+else {
+  try { base = { ok: true, titre: 'Base de données', detail: `Connexion réussie : ${await compterClients()} fiche(s) client.` }; }
+  catch (e) { base = { ok: false, titre: 'Base de données', detail: `Connexion impossible : ${e instanceof Error ? e.message : e}` }; }
+}
+
+const smtp = await verifierSmtp();
+
+let test: { ok: boolean; message: string } | null = null;
+if (Astro.request.method === 'POST') {
+  test = await envoyer({
+    subject: 'Test du site — alerte email',
+    text: `Ceci est un email de test envoyé depuis la page Diagnostic du back-office (${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}).\n\nSi vous le recevez, les alertes des nouvelles demandes fonctionnent.`,
+  });
+}
+const icon = (ok: boolean | null) => (ok === null ? '–' : ok ? '✓' : '✗');
+const cls = (ok: boolean | null) => (ok === null ? 'neutre' : ok ? 'ok' : 'ko');
+---
+<Admin title="Diagnostic">
+  <div class="adm-head">
+    <div>
+      <h1 class="heading">Diagnostic</h1>
+      <p class="adm-sub">Vérifie les réglages du site et l'envoi des alertes. Après toute modification dans Vercel, faites « Redeploy » puis rechargez cette page.</p>
+    </div>
+  </div>
+
+  <section class="dg-card">
+    <h2>1. Réglages Vercel</h2>
+    <ul class="dg-list">
+      {reglages.map((l) => <li class={cls(l.ok)}><span class="dg-ic">{icon(l.ok)}</span><div><strong>{l.titre}</strong><span>{l.detail}</span></div></li>)}
+    </ul>
+  </section>
+
+  <section class="dg-card">
+    <h2>2. Base de données</h2>
+    <ul class="dg-list"><li class={cls(base.ok)}><span class="dg-ic">{icon(base.ok)}</span><div><strong>{base.titre}</strong><span>{base.detail}</span></div></li></ul>
+  </section>
+
+  <section class="dg-card">
+    <h2>3. Envoi des alertes email</h2>
+    <ul class="dg-list"><li class={cls(smtp.ok)}><span class="dg-ic">{icon(smtp.ok)}</span><div><strong>Connexion à la boîte d'envoi</strong><span>{smtp.message}</span></div></li></ul>
+    {test && <ul class="dg-list"><li class={cls(test.ok)}><span class="dg-ic">{icon(test.ok)}</span><div><strong>Email de test</strong><span>{test.message}{test.ok && ' Vérifiez la boîte de réception (et les spams) dans une minute.'}</span></div></li></ul>}
+    <form method="post"><button type="submit" class="pill pill-accent" disabled={!smtpConfigured()}>Envoyer un email de test</button></form>
+  </section>
+</Admin>
+
+<style>
+  .dg-card { background: var(--color-neutral-100); border-radius: 24px; padding: 22px 24px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
+  .dg-card h2 { font-family: var(--font-body); font-size: 15px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--color-neutral-700); margin-bottom: 14px; }
+  .dg-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+  .dg-list li { display: flex; gap: 14px; align-items: flex-start; padding: 12px 14px; border-radius: 16px; background: var(--color-neutral-200); }
+  .dg-list li div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .dg-list strong { font-size: 15px; }
+  .dg-list span { font-size: 14px; line-height: 1.5; color: var(--color-neutral-800); overflow-wrap: anywhere; }
+  .dg-ic { flex: none; width: 28px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+  .ok .dg-ic { background: var(--color-accent-2-700); color: var(--color-neutral-100); }
+  .ko { background: var(--color-accent-100) !important; }
+  .ko .dg-ic { background: var(--color-accent-700); color: var(--color-neutral-100); }
+  .neutre .dg-ic { background: var(--color-neutral-400); color: var(--color-neutral-100); }
+  .dg-card .pill { height: 48px; padding: 0 22px; font-size: 15px; }
+  .dg-card .pill:disabled { opacity: .45; cursor: not-allowed; }
+</style>

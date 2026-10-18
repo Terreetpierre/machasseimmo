@@ -160,3 +160,10 @@ export async function clearRateLimit(key: string) {
   const sql = await db();
   await sql`delete from rate_limits where key = ${key}`;
 }
+
+/** Test de la base pour la page Diagnostic : renvoie le nombre de fiches clients. */
+export async function compterClients() {
+  const sql = await db();
+  const [{ n }] = await sql<{ n: number }[]>`select count(*)::int as n from clients`;
+  return n;
+}
