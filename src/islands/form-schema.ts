@@ -13,9 +13,9 @@ export type FieldDef =
   | { kind: 'achatOnly'; field: FieldDef };
 
 export const ARR = ['types', 'communes', 'proximites', 'etat', 'exterieur', 'stationnement', 'equipements', 'chauffage', 'ambiance', 'strategie', 'contactPref'];
-export const NUMK = ['budget', 'budgetMin', 'budgetTravaux', 'apport', 'pret', 'mensualite', 'revenus', 'autresRevenus', 'credits', 'vprix'];
+export const NUMK = ['budget', 'budgetMin', 'budgetTravaux', 'apport', 'pret', 'mensualite', 'revenus', 'loyersPercus', 'autresRevenus', 'credits', 'pensionsVersees', 'vprix'];
 export const INTK = ['surfaceMin', 'surfaceMax', 'terrainMin', 'nbLots', 'vsurface', 'vterrain', 'vpieces'];
-const STR = 'projet primo adultes enfants aVendre delai motivation communesAutres rayon lieuTravail trajetMax environnement budget budgetMin surfaceMin surfaceMax terrainMin piecesMin chambresMin sdbMin budgetTravaux dpe etage redhibitoire ideal rendementMin nbLots objectif occupation gestion dejaInvest financement situationPro anciennete situationCo ancienneteCo revenus autresRevenus credits creditsDetail apport pret mensualite courtier vtype vadresse vsurface vterrain vpieces vetat vprix vdpe vdelai vmessage prenom nom email tel villeActuelle dispo alertes rdvDate rdvSlot'.split(' ');
+const STR = 'projet primo adultes enfants aVendre delai motivation communesAutres rayon lieuTravail trajetMax environnement budget budgetMin surfaceMin surfaceMax terrainMin piecesMin chambresMin sdbMin budgetTravaux dpe etage redhibitoire ideal rendementMin nbLots objectif occupation gestion dejaInvest financement situationPro anciennete situationCo ancienneteCo revenus loyersPercus autresRevenus credits pensionsVersees creditsDetail apport pret mensualite courtier vtype vadresse vsurface vterrain vpieces vetat vprix vdpe vdelai vmessage prenom nom email tel villeActuelle dispo alertes rdvDate rdvSlot'.split(' ');
 
 export type FormState = Record<string, any>;
 export const EMPTY: FormState = {};
@@ -160,17 +160,19 @@ export const STEPS: Record<string, { title: string; desc: string; fields: FieldD
       { kind: 'chips', key: 'situationCo', label: 'Situation du co-emprunteur', opts: [...SITUATION_PRO, 'Pas de co-emprunteur'] },
       { kind: 'chips', key: 'ancienneteCo', label: 'Ancienneté du co-emprunteur', opts: ANCIENNETE },
       { kind: 'row', min: 200, fields: [
-        { kind: 'input', key: 'revenus', label: 'Revenus nets mensuels du foyer (€)', placeholder: '4 200', inputMode: 'numeric' },
-        { kind: 'input', key: 'autresRevenus', label: 'Autres revenus mensuels (loyers, pensions…) (€)', placeholder: '600', inputMode: 'numeric' },
+        { kind: 'input', key: 'revenus', label: 'Revenus nets mensuels du foyer, avant impôt (€)', placeholder: '4 200', inputMode: 'numeric' },
+        { kind: 'input', key: 'loyersPercus', label: 'Loyers perçus, hors charges (€ / mois)', placeholder: '600', inputMode: 'numeric' },
+        { kind: 'input', key: 'autresRevenus', label: 'Autres revenus réguliers : pensions, rentes (€ / mois)', placeholder: '0', inputMode: 'numeric' },
       ] },
       { kind: 'row', min: 200, fields: [
-        { kind: 'input', key: 'credits', label: 'Crédits en cours : total des mensualités (€ / mois)', placeholder: '350', inputMode: 'numeric' },
-        { kind: 'input', key: 'creditsDetail', label: 'Détail des crédits en cours', placeholder: 'Ex. prêt immo RP 650 € jusqu\'en 2041, auto 180 €' },
+        { kind: 'input', key: 'credits', label: 'Crédits en cours : total des mensualités, assurance comprise (€ / mois)', placeholder: '350', inputMode: 'numeric' },
+        { kind: 'input', key: 'pensionsVersees', label: 'Pension alimentaire versée (€ / mois)', placeholder: '0', inputMode: 'numeric' },
       ] },
+      { kind: 'input', key: 'creditsDetail', label: 'Détail des crédits en cours', placeholder: 'Ex. prêt immo RP 650 € jusqu\'en 2041, auto 180 €' },
       { kind: 'row', min: 200, fields: [
         { kind: 'input', key: 'apport', label: 'Apport personnel (€)', placeholder: '30 000', inputMode: 'numeric' },
         { kind: 'input', key: 'pret', label: 'Montant de prêt accordé ou estimé (€)', placeholder: '220 000', inputMode: 'numeric' },
-        { kind: 'input', key: 'mensualite', label: 'Mensualité max. (€ / mois)', placeholder: '1 100', inputMode: 'numeric' },
+        { kind: 'input', key: 'mensualite', label: 'Mensualité max. du projet, assurance comprise (€ / mois)', placeholder: '1 100', inputMode: 'numeric' },
       ] },
       { kind: 'chips', key: 'courtier', label: "Besoin d'un courtier ?", opts: ["J'ai déjà un courtier", 'Mise en relation souhaitée', 'Non merci'] },
     ],
@@ -275,6 +277,34 @@ export function brief(f: FormState): string {
   return p.join('. ') + '.';
 }
 
+// Taux d'effort selon la norme HCSF (décision D-HCSF-2021-7) et la pratique bancaire « méthode classique » :
+// (crédits en cours + pension versée + nouvelle mensualité, assurance comprise) / revenus nets avant impôt,
+// loyers perçus retenus à 70 %, pensions et rentes à 100 %.
+export const TAUX_MAX = 35; // plafond HCSF, en %
+export const PART_LOYERS = 0.7; // part des loyers perçus retenue par les banques
+
+/** Taux d'endettement calculé à partir des réponses ; null tant que les revenus ne sont pas renseignés. */
+export function endettement(f: FormState) {
+  const n = (v: string) => Number(String(v || '').replace(/\D/g, '')) || 0;
+  const revenus = n(f.revenus) + PART_LOYERS * n(f.loyersPercus) + n(f.autresRevenus);
+  if (!revenus) return null;
+  const charges = n(f.credits) + n(f.pensionsVersees), projet = n(f.mensualite);
+  const pct = (x: number) => Math.round((x / revenus) * 1000) / 10;
+  const encaisse = n(f.revenus) + n(f.loyersPercus) + n(f.autresRevenus);
+  return {
+    revenusRetenus: Math.round(revenus),
+    actuel: pct(charges),
+    avecProjet: projet ? pct(charges + projet) : null,
+    mensualiteDisponible: Math.max(0, Math.round((revenus * TAUX_MAX) / 100 - charges)),
+    resteAVivre: projet ? Math.round(encaisse - charges - projet) : null,
+  };
+}
+
+const endettementFiche = (f: FormState) => {
+  const e = endettement(f);
+  return e && { revenus_retenus_eur: e.revenusRetenus, taux_actuel_pct: e.actuel, taux_avec_projet_pct: e.avecProjet, mensualite_disponible_a_35_pct_eur: e.mensualiteDisponible, reste_a_vivre_eur: e.resteAVivre, regle: `HCSF ${TAUX_MAX} % max, assurance comprise, revenus nets avant impôt, loyers retenus à ${PART_LOYERS * 100} %` };
+};
+
 /** Fiche de recherche structurée (JSON) envoyée par email et enregistrée côté serveur. */
 export function fiche(ref: string, mode: 'achat' | 'vente', complet: boolean, f: FormState) {
   const money = (v: string) => { const d = String(v || '').replace(/\D/g, ''); return d ? Number(d) : null; };
@@ -293,7 +323,7 @@ export function fiche(ref: string, mode: 'achat' | 'vente', complet: boolean, f:
     localisation: { communes: f.communes, autres_secteurs: o(f.communesAutres), rayon: o(f.rayon), lieu_travail: o(f.lieuTravail), trajet_max: o(f.trajetMax), environnement: o(f.environnement), proximites: a(f.proximites) },
     criteres: { types_bien: f.types, budget_min_eur: money(f.budgetMin), budget_max_eur_fai: money(f.budget), surface_min_m2: money(f.surfaceMin), surface_max_m2: money(f.surfaceMax), terrain_min_m2: money(f.terrainMin), pieces_min: o(f.piecesMin), chambres_min: o(f.chambresMin), salles_de_bain_min: o(f.sdbMin), etats_acceptes: a(f.etat), budget_travaux_eur: money(f.budgetTravaux), dpe_minimum: o(f.dpe), exterieur: a(f.exterieur), stationnement: a(f.stationnement), indispensables: a(f.equipements), etage_appartement: o(f.etage), chauffage: a(f.chauffage), ambiance: a(f.ambiance), redhibitoires: o(f.redhibitoire), bien_ideal: o(f.ideal) },
     investissement: f.projet === 'Investissement locatif' ? { strategies: f.strategie, rendement_brut_min_pct: pct(f.rendementMin), nombre_lots: o(f.nbLots), objectif: o(f.objectif), occupation: o(f.occupation), gestion: o(f.gestion), experience: o(f.dejaInvest) } : null,
-    financement: { statut: o(f.financement), situation_professionnelle: o(f.situationPro), anciennete: o(f.anciennete), situation_co_emprunteur: o(f.situationCo), anciennete_co_emprunteur: o(f.ancienneteCo), revenus_nets_mensuels_foyer_eur: money(f.revenus), autres_revenus_mensuels_eur: money(f.autresRevenus), credits_en_cours_mensualites_eur: money(f.credits), credits_en_cours_detail: o(f.creditsDetail), apport_eur: money(f.apport), pret_eur: money(f.pret), mensualite_max_eur: money(f.mensualite), courtier: o(f.courtier) },
+    financement: { statut: o(f.financement), situation_professionnelle: o(f.situationPro), anciennete: o(f.anciennete), situation_co_emprunteur: o(f.situationCo), anciennete_co_emprunteur: o(f.ancienneteCo), revenus_nets_mensuels_foyer_eur: money(f.revenus), loyers_percus_mensuels_eur: money(f.loyersPercus), autres_revenus_mensuels_eur: money(f.autresRevenus), credits_en_cours_mensualites_eur: money(f.credits), pension_alimentaire_versee_eur: money(f.pensionsVersees), credits_en_cours_detail: o(f.creditsDetail), apport_eur: money(f.apport), pret_eur: money(f.pret), mensualite_max_eur: money(f.mensualite), courtier: o(f.courtier), endettement: endettementFiche(f) },
     validation: { mode: reserve ? 'appel_cadrage' : 'rappel_24h', appel: reserve ? { jour: f.rdvDate, heure: f.rdvSlot } : null, statut_mandat: 'a_envoyer_apres_appel' },
     brief_recherche: brief(f) };
 }

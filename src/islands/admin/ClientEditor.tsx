@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { Field } from '../fields';
-import { EMPTY, STEPS, brief, type FieldDef, type FormState } from '../form-schema';
+import { EMPTY, PART_LOYERS, STEPS, TAUX_MAX, brief, endettement, type FieldDef, type FormState } from '../form-schema';
 import '../islands.css';
 
 type Statut = { id: string; label: string };
@@ -188,6 +188,7 @@ export default function ClientEditor({ client, statuts, initialFiche }: { client
               <div class="pf-fields">
                 {forAdmin(STEPS[k].fields).map((d, i) => <Field key={k + i} def={d} ctx={{ f, err: {}, set, mode }} />)}
               </div>
+              {k === 'financement' && <Endettement f={f} />}
             </section>
           ))}
         </div>
@@ -197,6 +198,30 @@ export default function ClientEditor({ client, statuts, initialFiche }: { client
         <span>{error || status}</span>
         <button type="button" class="pill pill-accent" disabled={saving || !dirty} onClick={save}>Enregistrer</button>
       </div>
+    </div>
+  );
+}
+
+const eurFr = (n: number) => n.toLocaleString('fr-FR') + ' €';
+const pctFr = (n: number) => n.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' %';
+
+/** Taux d'endettement recalculé à chaque saisie (revenus, loyers, pensions, crédits, mensualité du projet). */
+function Endettement({ f }: { f: FormState }) {
+  const e = endettement(f);
+  if (!e) return <div class="ce-debt ce-debt-empty">Renseignez les revenus pour calculer le taux d'endettement.</div>;
+  const level = (t: number) => (t > TAUX_MAX ? 'over' : t > TAUX_MAX - 5 ? 'near' : 'ok');
+  return (
+    <div class="ce-debt">
+      <h4>Taux d'endettement</h4>
+      <div class="ce-debt-grid">
+        <div><span>Aujourd'hui</span><strong class={level(e.actuel)}>{pctFr(e.actuel)}</strong></div>
+        <div><span>Avec le projet</span>{e.avecProjet === null ? <em>Indiquez la mensualité max.</em> : <strong class={level(e.avecProjet)}>{pctFr(e.avecProjet)}</strong>}</div>
+        <div><span>Mensualité encore possible</span><strong>{eurFr(e.mensualiteDisponible)}</strong></div>
+        <div><span>Revenus retenus</span><strong>{eurFr(e.revenusRetenus)}</strong></div>
+        {e.resteAVivre !== null && <div><span>Reste à vivre</span><strong>{eurFr(e.resteAVivre)}</strong></div>}
+      </div>
+      {e.avecProjet !== null && e.avecProjet > TAUX_MAX && <p class="ce-debt-warn">Au-dessus de {TAUX_MAX} % : possible seulement par dérogation (20 % des crédits de chaque banque, réservés en priorité à la résidence principale et aux primo-accédants). Prévoir plus d'apport ou une mensualité plus faible.</p>}
+      <p class="ce-debt-note">Norme HCSF : {TAUX_MAX} % maximum, assurance emprunteur comprise, sur les revenus nets avant impôt (hors primes exceptionnelles). Loyers perçus retenus à {PART_LOYERS * 100} %, pensions et rentes à 100 %. Estimation à confirmer par la banque ou le courtier.</p>
     </div>
   );
 }

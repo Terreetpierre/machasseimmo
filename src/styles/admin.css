@@ -129,3 +129,18 @@
   .adm-nav a, .adm-nav button { padding: 8px 8px; font-size: 13.5px; }
   .ce-bar { padding-left: 16px; gap: 10px; font-size: 13.5px; }
 }
+
+/* Taux d'endettement */
+.ce-debt { margin-top: 26px; border-radius: 24px; background: var(--color-neutral-200); padding: 20px 22px; }
+.ce-debt h4 { font-family: var(--font-body); font-size: 13px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--color-neutral-700); margin: 0 0 14px; }
+.ce-debt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; }
+.ce-debt-grid div { display: flex; flex-direction: column; gap: 4px; }
+.ce-debt-grid span { font-size: 13.5px; color: var(--color-neutral-700); }
+.ce-debt-grid strong { font-family: var(--font-heading); font-weight: 400; font-size: 28px; line-height: 1.1; }
+.ce-debt-grid em { font-style: normal; font-size: 14px; color: var(--color-neutral-600); padding-top: 6px; }
+.ce-debt strong.ok { color: var(--color-accent-2-700); }
+.ce-debt strong.near { color: var(--color-accent-600); }
+.ce-debt strong.over { color: var(--color-accent-800); }
+.ce-debt-warn { margin: 14px 0 0; font-weight: 600; color: var(--color-accent-800); }
+.ce-debt-note { margin: 12px 0 0; font-size: 13px; color: var(--color-neutral-700); }
+.ce-debt-empty { color: var(--color-neutral-700); }
