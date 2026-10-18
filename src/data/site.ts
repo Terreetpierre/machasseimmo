@@ -4,7 +4,7 @@
 export const SITE = {
   name: 'Ton Chasseur Immo Roannais',
   by: 'Par Terre & Pierre Immobilier',
-  url: 'https://www.tonchasseurimmo-roannais.fr',
+  url: 'https://chasseurimmoroanne.com',
   person: 'Pierre Colas',
   phone: '07 63 00 94 60',
   phoneHref: 'tel:+33763009460',

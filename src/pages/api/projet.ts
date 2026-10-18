@@ -6,7 +6,7 @@
 // Variables d'environnement Vercel :
 //   RESEND_API_KEY      clé API Resend (obligatoire pour l'email)
 //   MAIL_TO             destinataire (défaut : contact@libertinvest.fr)
-//   MAIL_FROM           expéditeur vérifié dans Resend (ex. « Ton Chasseur Immo <noreply@tonchasseurimmo-roannais.fr> »)
+//   MAIL_FROM           expéditeur vérifié dans Resend (ex. « Ton Chasseur Immo <noreply@chasseurimmoroanne.com> »)
 //   FICHES_WEBHOOK_URL  facultatif
 //   DATABASE_URL        base Postgres du back-office (créée par l'intégration Neon de Vercel)
 import type { APIRoute } from 'astro';

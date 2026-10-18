@@ -37,7 +37,7 @@ Couleurs, polices et arrondis : `src/styles/organic.css` (design system Organic,
 | Variable | Rôle |
 | --- | --- |
 | `RESEND_API_KEY` | Clé API [Resend](https://resend.com) (envoi des emails, offre gratuite suffisante). |
-| `MAIL_FROM` | Expéditeur, ex. `Ton Chasseur Immo <noreply@tonchasseurimmo-roannais.fr>`. Le domaine doit être vérifié dans Resend. |
+| `MAIL_FROM` | Expéditeur, ex. `Ton Chasseur Immo <noreply@chasseurimmoroanne.com>`. Le domaine doit être vérifié dans Resend. |
 | `MAIL_TO` | Destinataire (par défaut `contact@libertinvest.fr`). |
 | `DATABASE_URL` | Base Postgres du back-office. Dans Vercel : Storage → Create Database → **Neon** (offre gratuite), reliée au projet : la variable est ajoutée automatiquement. La table se crée toute seule. |
 | `ADMIN_PASSWORD` | Mot de passe du back-office : au moins 12 caractères, unique (sinon le back-office reste fermé). |

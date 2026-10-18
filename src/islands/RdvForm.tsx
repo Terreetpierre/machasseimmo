@@ -27,7 +27,7 @@ export default function RdvForm() {
     setSending(true); setSendError('');
     try {
       const ref = 'RDV-' + String(Date.now()).slice(-6);
-      await submit({ kind: 'rdv', fiche: { reference: ref, type: 'rendez_vous', date_creation: new Date().toISOString(), source: 'tonchasseurimmo-roannais.fr', rendez_vous: { type: f.rdvType, jour: f.rdvDate, heure: f.rdvSlot }, client: { prenom: f.prenom, telephone: f.tel, email: f.email } } }, hp);
+      await submit({ kind: 'rdv', fiche: { reference: ref, type: 'rendez_vous', date_creation: new Date().toISOString(), source: 'chasseurimmoroanne.com', rendez_vous: { type: f.rdvType, jour: f.rdvDate, heure: f.rdvSlot }, client: { prenom: f.prenom, telephone: f.tel, email: f.email } } }, hp);
       setDone(true);
       window.scrollTo(0, 0);
     } catch {

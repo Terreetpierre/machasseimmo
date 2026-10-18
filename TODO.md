@@ -16,5 +16,5 @@
 - [ ] Créer le compte Resend, vérifier le domaine, renseigner les variables d'environnement Vercel (voir README).
 - [ ] Faire un envoi test du formulaire et du rendez-vous une fois en ligne.
 - [ ] Télécharger les photos Pexels / Wikimedia et les héberger dans `public/images` (elles sont actuellement chargées depuis leurs sites d'origine), en gardant les crédits.
-- [ ] Brancher le nom de domaine `tonchasseurimmo-roannais.fr` dans Vercel.
+- [ ] Brancher le nom de domaine `chasseurimmoroanne.com` dans Vercel (Settings → Domains) et chez le registrar (DNS).
 - [ ] Prise de rendez-vous : c'est une demande envoyée par email, pas un agenda synchronisé. Brancher Calendly / Google Agenda si besoin.

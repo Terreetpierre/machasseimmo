@@ -331,7 +331,7 @@ export function fiche(ref: string, mode: 'achat' | 'vente', complet: boolean, f:
   const pct = (v: string) => { const d = String(v || '').replace(',', '.').replace(/[^\d.]/g, ''); return d ? Number(d) : null; };
   const o = (v: string) => v || null;
   const a = (v: string[]) => (v.length ? v : null);
-  const base = { reference: ref, date_creation: new Date().toISOString(), source: 'tonchasseurimmo-roannais.fr', formulaire: complet ? 'complet' : 'court' };
+  const base = { reference: ref, date_creation: new Date().toISOString(), source: 'chasseurimmoroanne.com', formulaire: complet ? 'complet' : 'court' };
   const client = { prenom: f.prenom, nom: o(f.nom), email: f.email, telephone: f.tel, ville_actuelle: o(f.villeActuelle), preferences_contact: a(f.contactPref), disponibilite: o(f.dispo), frequence_alertes: o(f.alertes) };
   if (mode === 'vente') {
     return { ...base, type: 'estimation_vente', client,

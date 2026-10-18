@@ -3,4 +3,4 @@ Allow: /
 Disallow: /api/
 Disallow: /admin/
 
-Sitemap: https://www.tonchasseurimmo-roannais.fr/sitemap-index.xml
+Sitemap: https://chasseurimmoroanne.com/sitemap-index.xml
