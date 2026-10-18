@@ -13,9 +13,9 @@ export type FieldDef =
   | { kind: 'achatOnly'; field: FieldDef };
 
 export const ARR = ['types', 'communes', 'proximites', 'etat', 'exterieur', 'stationnement', 'equipements', 'chauffage', 'ambiance', 'strategie', 'contactPref'];
-export const NUMK = ['budget', 'budgetMin', 'budgetTravaux', 'apport', 'pret', 'mensualite', 'revenus', 'autresRevenus', 'vprix'];
+export const NUMK = ['budget', 'budgetMin', 'budgetTravaux', 'apport', 'pret', 'mensualite', 'revenus', 'autresRevenus', 'credits', 'vprix'];
 export const INTK = ['surfaceMin', 'surfaceMax', 'terrainMin', 'nbLots', 'vsurface', 'vterrain', 'vpieces'];
-const STR = 'projet primo adultes enfants aVendre delai motivation communesAutres rayon lieuTravail trajetMax environnement budget budgetMin surfaceMin surfaceMax terrainMin piecesMin chambresMin sdbMin budgetTravaux dpe etage redhibitoire ideal rendementMin nbLots objectif occupation gestion dejaInvest financement situationPro situationCo revenus autresRevenus apport pret mensualite courtier vtype vadresse vsurface vterrain vpieces vetat vprix vdpe vdelai vmessage prenom nom email tel villeActuelle dispo alertes rdvDate rdvSlot'.split(' ');
+const STR = 'projet primo adultes enfants aVendre delai motivation communesAutres rayon lieuTravail trajetMax environnement budget budgetMin surfaceMin surfaceMax terrainMin piecesMin chambresMin sdbMin budgetTravaux dpe etage redhibitoire ideal rendementMin nbLots objectif occupation gestion dejaInvest financement situationPro anciennete situationCo ancienneteCo revenus autresRevenus credits creditsDetail apport pret mensualite courtier vtype vadresse vsurface vterrain vpieces vetat vprix vdpe vdelai vmessage prenom nom email tel villeActuelle dispo alertes rdvDate rdvSlot'.split(' ');
 
 export type FormState = Record<string, any>;
 export const EMPTY: FormState = {};
@@ -32,6 +32,7 @@ const DELAI = ['Dès que possible', 'Sous 3 mois', 'Sous 6 mois', 'Je me renseig
 const FINANCEMENT = ['Accord bancaire obtenu', 'Simulation en cours', 'Achat comptant', 'Pas encore étudié'];
 const TYPES = ['Maison', 'Appartement', 'Immeuble de rapport', 'Terrain à bâtir', 'Local / mixte'];
 const VTYPE = ['Maison', 'Appartement', 'Immeuble', 'Terrain'];
+const ANCIENNETE = ["Période d'essai", "Moins d'1 an", '1 à 3 ans', 'Plus de 3 ans'];
 const SITUATION_PRO = ['CDI', 'CDD / intérim', 'Fonctionnaire', 'Indépendant / chef d\'entreprise', 'Profession libérale', 'Retraité', 'Autre'];
 const indiff = (vals: string[], first = 'Indifférent'): Opt[] => [['', first], ...vals.map((v) => [v, v] as [string, string])];
 
@@ -155,10 +156,16 @@ export const STEPS: Record<string, { title: string; desc: string; fields: FieldD
     fields: [
       { kind: 'chips', key: 'financement', label: 'Où en est votre financement ?', opts: FINANCEMENT },
       { kind: 'chips', key: 'situationPro', label: 'Votre situation professionnelle', opts: SITUATION_PRO },
+      { kind: 'chips', key: 'anciennete', label: 'Votre ancienneté dans cet emploi', opts: ANCIENNETE },
       { kind: 'chips', key: 'situationCo', label: 'Situation du co-emprunteur', opts: [...SITUATION_PRO, 'Pas de co-emprunteur'] },
+      { kind: 'chips', key: 'ancienneteCo', label: 'Ancienneté du co-emprunteur', opts: ANCIENNETE },
       { kind: 'row', min: 200, fields: [
         { kind: 'input', key: 'revenus', label: 'Revenus nets mensuels du foyer (€)', placeholder: '4 200', inputMode: 'numeric' },
         { kind: 'input', key: 'autresRevenus', label: 'Autres revenus mensuels (loyers, pensions…) (€)', placeholder: '600', inputMode: 'numeric' },
+      ] },
+      { kind: 'row', min: 200, fields: [
+        { kind: 'input', key: 'credits', label: 'Crédits en cours : total des mensualités (€ / mois)', placeholder: '350', inputMode: 'numeric' },
+        { kind: 'input', key: 'creditsDetail', label: 'Détail des crédits en cours', placeholder: 'Ex. prêt immo RP 650 € jusqu\'en 2041, auto 180 €' },
       ] },
       { kind: 'row', min: 200, fields: [
         { kind: 'input', key: 'apport', label: 'Apport personnel (€)', placeholder: '30 000', inputMode: 'numeric' },
@@ -286,7 +293,7 @@ export function fiche(ref: string, mode: 'achat' | 'vente', complet: boolean, f:
     localisation: { communes: f.communes, autres_secteurs: o(f.communesAutres), rayon: o(f.rayon), lieu_travail: o(f.lieuTravail), trajet_max: o(f.trajetMax), environnement: o(f.environnement), proximites: a(f.proximites) },
     criteres: { types_bien: f.types, budget_min_eur: money(f.budgetMin), budget_max_eur_fai: money(f.budget), surface_min_m2: money(f.surfaceMin), surface_max_m2: money(f.surfaceMax), terrain_min_m2: money(f.terrainMin), pieces_min: o(f.piecesMin), chambres_min: o(f.chambresMin), salles_de_bain_min: o(f.sdbMin), etats_acceptes: a(f.etat), budget_travaux_eur: money(f.budgetTravaux), dpe_minimum: o(f.dpe), exterieur: a(f.exterieur), stationnement: a(f.stationnement), indispensables: a(f.equipements), etage_appartement: o(f.etage), chauffage: a(f.chauffage), ambiance: a(f.ambiance), redhibitoires: o(f.redhibitoire), bien_ideal: o(f.ideal) },
     investissement: f.projet === 'Investissement locatif' ? { strategies: f.strategie, rendement_brut_min_pct: pct(f.rendementMin), nombre_lots: o(f.nbLots), objectif: o(f.objectif), occupation: o(f.occupation), gestion: o(f.gestion), experience: o(f.dejaInvest) } : null,
-    financement: { statut: o(f.financement), situation_professionnelle: o(f.situationPro), situation_co_emprunteur: o(f.situationCo), revenus_nets_mensuels_foyer_eur: money(f.revenus), autres_revenus_mensuels_eur: money(f.autresRevenus), apport_eur: money(f.apport), pret_eur: money(f.pret), mensualite_max_eur: money(f.mensualite), courtier: o(f.courtier) },
+    financement: { statut: o(f.financement), situation_professionnelle: o(f.situationPro), anciennete: o(f.anciennete), situation_co_emprunteur: o(f.situationCo), anciennete_co_emprunteur: o(f.ancienneteCo), revenus_nets_mensuels_foyer_eur: money(f.revenus), autres_revenus_mensuels_eur: money(f.autresRevenus), credits_en_cours_mensualites_eur: money(f.credits), credits_en_cours_detail: o(f.creditsDetail), apport_eur: money(f.apport), pret_eur: money(f.pret), mensualite_max_eur: money(f.mensualite), courtier: o(f.courtier) },
     validation: { mode: reserve ? 'appel_cadrage' : 'rappel_24h', appel: reserve ? { jour: f.rdvDate, heure: f.rdvSlot } : null, statut_mandat: 'a_envoyer_apres_appel' },
     brief_recherche: brief(f) };
 }
