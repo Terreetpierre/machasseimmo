@@ -109,7 +109,7 @@ const jsonLd = {
       {SERVICES.map((s) => (
         <a href={s.href} class="service">
           <div class="service-img">
-            <Photo photo={s.photo} alt={s.alt} />
+            <Photo photo={s.photo} alt={s.alt} insideLink />
             <span class="service-tag">{s.tag}</span>
           </div>
           <div class="service-body">

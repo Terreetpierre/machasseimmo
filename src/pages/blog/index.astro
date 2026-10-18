@@ -12,7 +12,7 @@ const [title, description] = META.blog;
     <div class="cards">
       {ARTICLES.map((a) => (
         <a href={`/blog/${a.slug}`} class="card-link">
-          <div class="card-img washed-soft"><Photo photo={a.photo} alt={`Illustration : ${a.t}`} /></div>
+          <div class="card-img washed-soft"><Photo photo={a.photo} alt={`Illustration : ${a.t}`} insideLink /></div>
           <span class="cat">{a.cat}</span>
           <h2 class="heading">{a.t}</h2>
           <p>{a.ex}</p>
