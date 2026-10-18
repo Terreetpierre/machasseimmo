@@ -36,9 +36,12 @@ Couleurs, polices et arrondis : `src/styles/organic.css` (design system Organic,
 
 | Variable | Rôle |
 | --- | --- |
-| `RESEND_API_KEY` | Clé API [Resend](https://resend.com) (envoi des emails, offre gratuite suffisante). |
-| `MAIL_FROM` | Expéditeur, ex. `Ton Chasseur Immo <noreply@chasseurimmoroanne.com>`. Le domaine doit être vérifié dans Resend. |
-| `MAIL_TO` | Destinataire (par défaut `contact@libertinvest.fr`). |
+| `SMTP_HOST` | Serveur d'envoi de la boîte expéditrice (ex. `ssl0.ovh.net`, `smtp.ionos.fr`, `mail.gandi.net`). |
+| `SMTP_PORT` | `587` (par défaut) ou `465`. |
+| `SMTP_USER` | Adresse de la boîte qui envoie les alertes, ex. `contact@chasseurimmoroanne.com`. |
+| `SMTP_PASS` | Mot de passe de cette boîte. |
+| `MAIL_TO` | Boîte qui reçoit les alertes (par défaut `contact@libertinvest.fr`, réception uniquement). Plusieurs adresses possibles, séparées par des virgules. |
+| `MAIL_FROM` | Facultatif : nom affiché de l'expéditeur, par défaut `Ton Chasseur Immo <SMTP_USER>`. |
 | `DATABASE_URL` | Base Postgres du back-office. Dans Vercel : Storage → Create Database → **Neon** (offre gratuite), reliée au projet : la variable est ajoutée automatiquement. La table se crée toute seule. |
 | `ADMIN_PASSWORD` | Mot de passe du back-office : au moins 12 caractères, unique (sinon le back-office reste fermé). |
 | `SESSION_SECRET` | Recommandé : une longue chaîne aléatoire qui signe la connexion. La changer déconnecte toutes les sessions ouvertes. |
@@ -47,7 +50,7 @@ Couleurs, polices et arrondis : `src/styles/organic.css` (design system Organic,
 
 Après avoir ajouté ou modifié une variable, redéployer (onglet Deployments → Redeploy).
 
-Si aucun canal ne fonctionne (ni base, ni email, ni webhook), le formulaire affiche un message d'erreur invitant à appeler.
+Chaque demande déclenche une alerte email en SMTP, directement depuis votre boîte, sans prestataire intermédiaire. Si aucun canal ne fonctionne (ni base, ni email, ni webhook), le formulaire affiche un message d'erreur invitant à appeler.
 
 ## Back-office (`/admin`)
 

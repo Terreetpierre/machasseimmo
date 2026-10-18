@@ -13,7 +13,7 @@
 ## Technique
 - [ ] Back-office : créer la base Neon dans Vercel (Storage), ajouter `ADMIN_PASSWORD` et `CLAUDE_API_TOKEN`, redéployer, puis se connecter sur `/admin`.
 - [ ] Ajouter au rendez-vous de découverte les questions de Pierre (captures d'écran à venir) dans `src/islands/form-schema.ts`.
-- [ ] Créer le compte Resend, vérifier le domaine, renseigner les variables d'environnement Vercel (voir README).
+- [ ] Créer la boîte d'envoi contact@chasseurimmoroanne.com chez l'hébergeur du domaine, puis renseigner SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS dans Vercel (voir README).
 - [ ] Faire un envoi test du formulaire et du rendez-vous une fois en ligne.
 - [ ] Télécharger les photos Pexels / Wikimedia et les héberger dans `public/images` (elles sont actuellement chargées depuis leurs sites d'origine), en gardant les crédits.
 - [ ] Brancher le nom de domaine `chasseurimmoroanne.com` dans Vercel (Settings → Domains) et chez le registrar (DNS).

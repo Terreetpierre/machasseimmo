@@ -1,20 +1,19 @@
 // Réception des formulaires « Décrire mon projet » et « Prendre rendez-vous » (fonction serveur Vercel).
-// Chaque envoi part par email (via Resend) avec la fiche JSON en pièce jointe : c'est ce fichier
+// Chaque demande est enregistrée dans le back-office, puis une alerte part par email en SMTP depuis
+// votre propre boîte (voir src/lib/mailer.ts), avec la fiche JSON en pièce jointe : c'est ce fichier
 // que Claude pourra lire pour lancer les recherches. Optionnellement, la fiche est aussi postée
 // vers FICHES_WEBHOOK_URL (Google Sheets, Make, Zapier, Notion…) pour être archivée.
 //
 // Variables d'environnement Vercel :
-//   RESEND_API_KEY      clé API Resend (obligatoire pour l'email)
-//   MAIL_TO             destinataire (défaut : contact@libertinvest.fr)
-//   MAIL_FROM           expéditeur vérifié dans Resend (ex. « Ton Chasseur Immo <noreply@chasseurimmoroanne.com> »)
+//   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_TO, MAIL_FROM   envoi de l'alerte (voir src/lib/mailer.ts)
 //   FICHES_WEBHOOK_URL  facultatif
-//   RESEND_API_URL      tests uniquement : remplace l'adresse de l'API Resend
 //   DATABASE_URL        base Postgres du back-office (créée par l'intégration Neon de Vercel)
 import type { APIRoute } from 'astro';
 import { hasDb, insertClient, rateLimited } from '../../lib/db';
 import { clientIp } from '../../lib/auth';
 import { cleanAnswers } from '../../lib/sanitize';
 import { echeanceRappel, formatEcheance } from '../../lib/delai';
+import { envoyerAlerte, smtpConfigured } from '../../lib/mailer';
 
 export const prerender = false;
 
@@ -104,23 +103,12 @@ export const POST: APIRoute = async ({ request }) => {
   const record = { ...fiche, reference: ref, recu_le: recu.toISOString(), a_rappeler_avant: echeanceRappel(recu).toISOString() };
   const body = JSON.stringify(record, null, 2);
 
-  const apiKey = env('RESEND_API_KEY');
-  if (apiKey) {
-    const res = await fetch(env('RESEND_API_URL') || 'https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from: env('MAIL_FROM') || 'Ton Chasseur Immo <onboarding@resend.dev>',
-        to: [env('MAIL_TO') || 'contact@libertinvest.fr'],
-        reply_to: c.email,
-        subject: `${LABELS[record.type] ?? 'Nouvelle demande'} — ${oneLine(`${c.prenom} ${c.nom ?? ''}`)} — à rappeler avant ${echeance}`,
-        text: summary(ref, record, echeance, adminUrl),
-        attachments: [{ filename: `${ref}.json`, content: Buffer.from(body).toString('base64') }],
-      }),
-    }).catch(() => null);
-    delivered ||= !!res?.ok;
-    if (!res?.ok) console.error('Resend error', res?.status, await res?.text().catch(() => ''));
-  }
+  delivered = (await envoyerAlerte({
+    subject: `${LABELS[record.type] ?? 'Nouvelle demande'} — ${oneLine(`${c.prenom} ${c.nom ?? ''}`)} — à rappeler avant ${echeance}`,
+    text: summary(ref, record, echeance, adminUrl),
+    replyTo: c.email,
+    attachment: { filename: `${ref}.json`, content: body },
+  })) || delivered;
 
   const hook = env('FICHES_WEBHOOK_URL');
   if (hook) {
@@ -129,7 +117,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   if (!delivered) {
-    console.error('Fiche non transmise', ref, apiKey ? '' : '(RESEND_API_KEY manquante)');
+    console.error('Fiche non transmise', ref, smtpConfigured() ? '' : '(réglages SMTP manquants)');
     return json(502, { ok: false, error: 'Envoi impossible' });
   }
   return json(200, { ok: true, reference: ref });
