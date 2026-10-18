@@ -1,9 +1,11 @@
 ---
+import { isAdmin } from '../../../lib/auth';
 import Admin from '../../../layouts/Admin.astro';
 import ClientEditor from '../../../islands/admin/ClientEditor';
 import { STATUTS, ficheClaude, getClient } from '../../../lib/db';
 
 export const prerender = false;
+if (!isAdmin(Astro.cookies)) return Astro.redirect('/admin/login');
 
 const id = Number(Astro.params.id);
 const c = Number.isInteger(id) ? await getClient(id) : null;

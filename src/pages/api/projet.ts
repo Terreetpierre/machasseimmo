@@ -10,23 +10,12 @@
 //   FICHES_WEBHOOK_URL  facultatif
 //   DATABASE_URL        base Postgres du back-office (créée par l'intégration Neon de Vercel)
 import type { APIRoute } from 'astro';
-import { hasDb, insertClient } from '../../lib/db';
-import { EMPTY, type FormState } from '../../islands/form-schema';
+import { hasDb, insertClient, rateLimited } from '../../lib/db';
+import { clientIp } from '../../lib/auth';
+import { cleanAnswers } from '../../lib/sanitize';
 
 export const prerender = false;
 
-/** Garde uniquement les réponses connues du formulaire, avec des longueurs raisonnables. */
-function cleanAnswers(r: unknown): FormState {
-  const out: FormState = {};
-  if (!r || typeof r !== 'object') return out;
-  for (const [k, v] of Object.entries(r as Record<string, unknown>)) {
-    if (!(k in EMPTY)) continue;
-    if (typeof v === 'string') out[k] = v.slice(0, 2000);
-    else if (typeof v === 'boolean') out[k] = v;
-    else if (Array.isArray(v)) out[k] = v.filter((x) => typeof x === 'string').slice(0, 40).map((x) => x.slice(0, 200));
-  }
-  return out;
-}
 
 const MAX_BYTES = 65536;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -70,6 +59,13 @@ export const POST: APIRoute = async ({ request }) => {
 
   // Champ piège : rempli par un robot, invisible pour un humain. On répond « ok » sans rien faire.
   if (data?.website) return json(200, { ok: true });
+
+  // Anti-spam : 5 envois max par adresse IP et par tranche de 10 minutes.
+  if (hasDb()) {
+    try {
+      if (await rateLimited('form:' + clientIp(request), 5, 600)) return json(429, { ok: false, error: "Trop d'envois, réessayez dans quelques minutes" });
+    } catch (e) { console.error('Limite de fréquence indisponible', e); }
+  }
 
   const { kind, fiche } = data ?? {};
   if (!['projet', 'rdv'].includes(kind) || !fiche || typeof fiche !== 'object') return json(400, { ok: false, error: 'Données invalides' });

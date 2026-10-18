@@ -63,7 +63,11 @@ async function db() {
       decouverte jsonb,
       rdv jsonb,
       notes text not null default ''
-    )`.catch((e) => { _ready = null; throw e; });
+    )`.then(() => _sql!`
+    create table if not exists rate_limits (
+      key text not null,
+      at timestamptz not null default now()
+    )`).then(() => _sql!`create index if not exists rate_limits_key_at on rate_limits (key, at)`).catch((e) => { _ready = null; throw e; });
   await _ready;
   return _sql;
 }
@@ -136,4 +140,23 @@ export function ficheClaude(c: ClientRow) {
     rendez_vous_demande: c.rdv,
     notes_pierre: c.notes || null,
   };
+}
+
+/**
+ * Limite de fréquence partagée entre toutes les instances Vercel (stockée en base).
+ * Enregistre un essai pour `key` et indique si la limite `max` est dépassée sur `windowSec` secondes.
+ */
+export async function rateLimited(key: string, max: number, windowSec: number) {
+  const sql = await db();
+  await sql`delete from rate_limits where at < now() - interval '1 day'`;
+  const [{ n }] = await sql<{ n: number }[]>`
+    select count(*)::int as n from rate_limits where key = ${key} and at > now() - ${windowSec} * interval '1 second'`;
+  if (n >= max) return true;
+  await sql`insert into rate_limits (key) values (${key})`;
+  return false;
+}
+
+export async function clearRateLimit(key: string) {
+  const sql = await db();
+  await sql`delete from rate_limits where key = ${key}`;
 }

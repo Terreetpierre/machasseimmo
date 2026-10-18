@@ -40,8 +40,8 @@ Couleurs, polices et arrondis : `src/styles/organic.css` (design system Organic,
 | `MAIL_FROM` | Expéditeur, ex. `Ton Chasseur Immo <noreply@tonchasseurimmo-roannais.fr>`. Le domaine doit être vérifié dans Resend. |
 | `MAIL_TO` | Destinataire (par défaut `contact@libertinvest.fr`). |
 | `DATABASE_URL` | Base Postgres du back-office. Dans Vercel : Storage → Create Database → **Neon** (offre gratuite), reliée au projet : la variable est ajoutée automatiquement. La table se crée toute seule. |
-| `ADMIN_PASSWORD` | Mot de passe du back-office (long et unique). |
-| `SESSION_SECRET` | Facultatif : une longue chaîne aléatoire pour signer la connexion (sinon le mot de passe sert de clé). |
+| `ADMIN_PASSWORD` | Mot de passe du back-office : au moins 12 caractères, unique (sinon le back-office reste fermé). |
+| `SESSION_SECRET` | Recommandé : une longue chaîne aléatoire qui signe la connexion. La changer déconnecte toutes les sessions ouvertes. |
 | `CLAUDE_API_TOKEN` | Clé d'accès de Claude aux fiches (au moins 24 caractères aléatoires). |
 | `FICHES_WEBHOOK_URL` | Facultatif : URL qui reçoit aussi chaque fiche JSON (Google Sheets via Apps Script, Make, Zapier…) pour l'archiver et permettre une recherche automatique. |
 
@@ -54,6 +54,15 @@ Si aucun canal ne fonctionne (ni base, ni email, ni webhook), le formulaire affi
 - **Mes clients** : toutes les demandes du site (achat, estimation, rendez-vous) dans un tableau, avec recherche, filtre par statut et boutons « + Nouvel acheteur / vendeur » pour les clients venus par téléphone.
 - **Fiche client** : coordonnées (appel, WhatsApp, email en un clic), statut, notes, réponses données sur le site, et le **rendez-vous de découverte** : le questionnaire complet, pré-rempli avec les réponses du client, à compléter pendant l'appel. Tout s'enregistre automatiquement (ou Ctrl+S).
 - Les questions de la découverte viennent de `src/islands/form-schema.ts` (étapes `profil`, `secteur`, `bien`, `invest`, `financement`, `contact`, `vbien`) : ajouter une question = ajouter une ligne.
+
+## Sécurité
+
+- Back-office : connexion par mot de passe (cookie signé, `HttpOnly`, `Secure`, `SameSite=Lax`, 30 jours), contrôlée dans le middleware **et** dans chaque route. 10 essais max par IP sur 15 minutes.
+- Formulaires publics : champ piège anti-robots, 5 envois max par IP sur 10 minutes, réponses filtrées et limitées en taille.
+- Base de données : requêtes paramétrées uniquement (pas d'injection SQL possible).
+- En-têtes sur tout le site : `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Strict-Transport-Security`, `Referrer-Policy`, `Permissions-Policy`, CSP `frame-ancestors 'none'` (ajoutés à la configuration Vercel par `src/lib/security-headers.mjs`). Back-office et API : `Cache-Control: private, no-store` et `noindex`.
+- Claude : lecture seule, clé de 24 caractères minimum comparée en temps constant.
+- `npm audit` signale `path-to-regexp` dans l'adaptateur Vercel : utilisé seulement au moment du build pour générer les routes, jamais sur des données de visiteurs. À mettre à jour quand l'adaptateur publiera un correctif.
 
 ## Accès de Claude
 

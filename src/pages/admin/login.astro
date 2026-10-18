@@ -1,6 +1,7 @@
 ---
 import Admin from '../../layouts/Admin.astro';
-import { adminConfigured, checkPassword, openSession } from '../../lib/auth';
+import { MIN_PASSWORD, adminConfigured, checkPassword, clientIp, openSession } from '../../lib/auth';
+import { clearRateLimit, hasDb, rateLimited } from '../../lib/db';
 
 export const prerender = false;
 
@@ -9,13 +10,23 @@ const safeNext = next.startsWith('/admin') ? next : '/admin';
 let error = '';
 
 if (Astro.request.method === 'POST') {
+  // 10 essais max par adresse IP sur 15 minutes ; un succès remet le compteur à zéro.
+  const key = 'login:' + clientIp(Astro.request);
+  let blocked = false;
+  if (hasDb()) {
+    try { blocked = await rateLimited(key, 10, 900); } catch (e) { console.error('Limite de fréquence indisponible', e); }
+  }
   const form = await Astro.request.formData();
-  if (checkPassword(String(form.get('password') ?? ''))) {
+  if (blocked) {
+    error = 'Trop de tentatives. Réessayez dans 15 minutes.';
+  } else if (checkPassword(String(form.get('password') ?? ''))) {
+    if (hasDb()) await clearRateLimit(key).catch(() => {});
     openSession(Astro.cookies, Astro.url.protocol === 'https:');
     return Astro.redirect(safeNext, 303);
+  } else {
+    await new Promise((r) => setTimeout(r, 800)); // ralentit les essais au hasard
+    error = 'Mot de passe incorrect.';
   }
-  await new Promise((r) => setTimeout(r, 800)); // ralentit les essais au hasard
-  error = 'Mot de passe incorrect.';
 }
 ---
 <Admin title="Connexion" bare>
@@ -32,7 +43,7 @@ if (Astro.request.method === 'POST') {
         <button type="submit" class="pill pill-accent">Se connecter</button>
       </form>
     ) : (
-      <p class="adm-warn">Le back-office n'est pas encore activé : ajoutez la variable <code>ADMIN_PASSWORD</code> dans les réglages Vercel du projet, puis redéployez.</p>
+      <p class="adm-warn">Le back-office n'est pas encore activé : ajoutez la variable <code>ADMIN_PASSWORD</code> (au moins {MIN_PASSWORD} caractères) dans les réglages Vercel du projet, puis redéployez.</p>
     )}
   </div>
 </Admin>

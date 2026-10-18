@@ -1,9 +1,11 @@
 ---
+import { isAdmin } from '../../lib/auth';
 import Admin from '../../layouts/Admin.astro';
 import { STATUTS, hasDb, listClients, type ClientRow } from '../../lib/db';
 import { summarize, dateFr } from '../../lib/clients-view';
 
 export const prerender = false;
+if (!isAdmin(Astro.cookies)) return Astro.redirect('/admin/login');
 
 const statut = Astro.url.searchParams.get('statut') ?? '';
 const q = (Astro.url.searchParams.get('q') ?? '').trim();
