@@ -75,7 +75,7 @@ export const STEPS: Record<string, { title: string; desc: string; fields: FieldD
       ] },
       { kind: 'input', key: 'email', label: 'Email', type: 'email', autoComplete: 'email', placeholder: 'vous@exemple.fr' },
       { kind: 'consent', key: 'rgpd', text: "J'accepte d'être recontacté(e) au sujet de mon projet. Mes données ne sont jamais revendues." },
-      { kind: 'info', text: "Je vous rappelle sous 24 h pour en parler. Sans engagement : rien n'est signé à cette étape." },
+      { kind: 'info', text: "Je vous rappelle sous 24 h, hors week-end (du lundi au vendredi, de 9 h à 18 h), pour en parler. Sans engagement : rien n'est signé à cette étape." },
     ],
   },
   profil: {
@@ -348,17 +348,17 @@ export function fiche(ref: string, mode: 'achat' | 'vente', complet: boolean, f:
     brief_recherche: brief(f) };
 }
 
-/** Les 8 prochains jours ouvrés (hors dimanche) et les créneaux proposés. */
+/** Les 8 prochains jours ouvrés (du lundi au vendredi) et les créneaux proposés, entre 9 h et 18 h. */
 export const nextDays = () => {
   const out: string[] = [], d = new Date();
   d.setDate(d.getDate() + 1);
   while (out.length < 8) {
-    if (d.getDay() !== 0) out.push(d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }));
+    if (d.getDay() !== 0 && d.getDay() !== 6) out.push(d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }));
     d.setDate(d.getDate() + 1);
   }
   return out;
 };
-export const SLOTS = ['9:00', '10:00', '11:30', '14:00', '15:30', '17:00', '18:30'];
+export const SLOTS = ['9:00', '10:00', '11:30', '14:00', '15:30', '17:00'];
 
 export const formatInput = (k: string, v: string) => {
   if (NUMK.includes(k)) { const d = v.replace(/\D/g, '').slice(0, 9); return d ? Number(d).toLocaleString('fr-FR') : ''; }

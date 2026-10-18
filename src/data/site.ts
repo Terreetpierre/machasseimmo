@@ -11,7 +11,7 @@ export const SITE = {
   phoneIntl: '+33763009460',
   whatsapp: 'https://wa.me/33763009460',
   email: 'contact@libertinvest.fr',
-  hours: 'Lun – sam, 9 h – 18 h',
+  hours: 'Lun – ven, 9 h – 18 h',
   address: { street: '20 rue Pierre Dépierre', postalCode: '42300', city: 'Roanne', region: 'Loire' },
 };
 
@@ -21,6 +21,10 @@ export const OFFER = {
   feeMin: '5 000 € TTC',
   studyPrice: 250,
 };
+
+// Délai de rappel affiché partout sur le site (règle de calcul : src/lib/delai.ts).
+export const RAPPEL = 'sous 24 h, hors week-end';
+export const HORAIRES = 'du lundi au vendredi, de 9 h à 18 h';
 
 export const NOT_AGENCY =
   "Je ne suis pas une agence : je travaille uniquement pour vous, l'acheteur. Pas de vitrine, pas d'annonces à écouler, pas de vendeur à satisfaire.";
@@ -270,7 +274,7 @@ export const META: Record<string, [string, string]> = {
   honoraires: ['Honoraires chasseur immobilier Roanne : 3 % TTC au succès', `${OFFER.feeRate} du prix d'achat, minimum ${OFFER.feeMin}, dus uniquement à la signature de l'acte. Étude de projet à ${OFFER.studyPrice} € pour démarrer.`],
   apropos: ['Pierre Colas, chasseur immobilier à Roanne', 'Investisseur depuis 5 ans, plus de 40 logements achetés : Pierre Colas met son expérience au service de votre achat.'],
   faq: ['Questions fréquentes | Chasseur immobilier Roanne', 'Honoraires, délais, secteur, compte rendu de visite : toutes les réponses sur la chasse immobilière à Roanne.'],
-  projet: ['Décrire mon projet immobilier | Ton Chasseur Immo Roannais', "Décrivez votre projet d'achat ou de vente en 2 minutes : je vous recontacte sous 24 h."],
+  projet: ['Décrire mon projet immobilier | Ton Chasseur Immo Roannais', "Décrivez votre projet d'achat ou de vente en 2 minutes : je vous recontacte sous 24 h, hors week-end."],
   blog: ['Conseils immobiliers dans le Roannais | Blog', "Acheter, investir et vendre à Roanne : conseils d'un investisseur, plus de 40 logements achetés."],
   rdv: ['Prendre rendez-vous | Chasseur immobilier Roanne', 'Réservez un appel gratuit de 20 minutes avec Pierre Colas.'],
   mentions: ['Mentions légales & confidentialité | Ton Chasseur Immo Roannais', 'Mentions légales, données personnelles et cookies.'],

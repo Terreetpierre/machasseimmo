@@ -8,11 +8,13 @@
 //   MAIL_TO             destinataire (défaut : contact@libertinvest.fr)
 //   MAIL_FROM           expéditeur vérifié dans Resend (ex. « Ton Chasseur Immo <noreply@chasseurimmoroanne.com> »)
 //   FICHES_WEBHOOK_URL  facultatif
+//   RESEND_API_URL      tests uniquement : remplace l'adresse de l'API Resend
 //   DATABASE_URL        base Postgres du back-office (créée par l'intégration Neon de Vercel)
 import type { APIRoute } from 'astro';
 import { hasDb, insertClient, rateLimited } from '../../lib/db';
 import { clientIp } from '../../lib/auth';
 import { cleanAnswers } from '../../lib/sanitize';
+import { echeanceRappel, formatEcheance } from '../../lib/delai';
 
 export const prerender = false;
 
@@ -31,11 +33,15 @@ const json = (status: number, body: object) =>
 const env = (k: string) => (import.meta.env[k] as string | undefined) ?? process.env[k];
 const oneLine = (s: unknown) => String(s ?? '').replace(/[\r\n]+/g, ' ').trim();
 
-/** Texte lisible de l'email, à partir de la fiche. */
-function summary(ref: string, f: any): string {
+/** Texte de l'alerte email : l'échéance de rappel et le lien vers la fiche d'abord, puis le détail. */
+function summary(ref: string, f: any, echeance: string, adminUrl: string): string {
   const c = f.client ?? {};
   const lines = [
     `${LABELS[f.type] ?? 'Nouveau formulaire'} (${ref})`, '',
+    `À RAPPELER AVANT : ${echeance}`,
+    '(24 h hors week-end, du lundi au vendredi de 9 h à 18 h)',
+    ...(adminUrl ? ['', `Ouvrir la fiche dans le back-office : ${adminUrl}`] : []),
+    '',
     `Client : ${oneLine(`${c.prenom ?? ''} ${c.nom ?? ''}`)}`,
     `Téléphone : ${oneLine(c.telephone)}`,
     `Email : ${oneLine(c.email)}`,
@@ -93,20 +99,22 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
-  const record = { ...fiche, reference: ref, recu_le: new Date().toISOString() };
+  const recu = new Date();
+  const echeance = formatEcheance(echeanceRappel(recu));
+  const record = { ...fiche, reference: ref, recu_le: recu.toISOString(), a_rappeler_avant: echeanceRappel(recu).toISOString() };
   const body = JSON.stringify(record, null, 2);
 
   const apiKey = env('RESEND_API_KEY');
   if (apiKey) {
-    const res = await fetch('https://api.resend.com/emails', {
+    const res = await fetch(env('RESEND_API_URL') || 'https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: env('MAIL_FROM') || 'Ton Chasseur Immo <onboarding@resend.dev>',
         to: [env('MAIL_TO') || 'contact@libertinvest.fr'],
         reply_to: c.email,
-        subject: `${LABELS[record.type] ?? 'Nouveau formulaire'} — ${oneLine(`${c.prenom} ${c.nom ?? ''}`)} — ${ref}`,
-        text: summary(ref, record) + (adminUrl ? `\nFiche dans le back-office : ${adminUrl}` : ''),
+        subject: `${LABELS[record.type] ?? 'Nouvelle demande'} — ${oneLine(`${c.prenom} ${c.nom ?? ''}`)} — à rappeler avant ${echeance}`,
+        text: summary(ref, record, echeance, adminUrl),
         attachments: [{ filename: `${ref}.json`, content: Buffer.from(body).toString('base64') }],
       }),
     }).catch(() => null);

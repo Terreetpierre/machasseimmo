@@ -2,7 +2,7 @@
 import { isAdmin } from '../../lib/auth';
 import Admin from '../../layouts/Admin.astro';
 import { STATUTS, hasDb, listClients, type ClientRow } from '../../lib/db';
-import { summarize, dateFr } from '../../lib/clients-view';
+import { summarize, dateFr, rappel } from '../../lib/clients-view';
 
 export const prerender = false;
 if (!isAdmin(Astro.cookies)) return Astro.redirect('/admin/login');
@@ -20,6 +20,7 @@ const rows = all
   .map((c) => ({ c, s: summarize(c) }))
   .filter(({ c, s }) => (!statut || c.statut === statut) && (!q || norm([s.nom, c.email, c.tel, s.projet, s.secteur, c.ref, c.notes].join(' ')).includes(norm(q))));
 const count = (id: string) => all.filter((c) => c.statut === id).length;
+const enRetard = all.filter((c) => rappel(c)?.enRetard).length;
 const tabHref = (id: string) => '/admin' + (id || q ? '?' + new URLSearchParams({ ...(id ? { statut: id } : {}), ...(q ? { q } : {}) }) : '');
 ---
 <Admin title="Mes clients">
@@ -37,6 +38,7 @@ const tabHref = (id: string) => '/admin' + (id || q ? '?' + new URLSearchParams(
   {!hasDb() && (
     <p class="adm-warn">La base de données n'est pas encore branchée. Dans Vercel : Storage → Create Database → Neon (Postgres), reliez-la au projet, puis redéployez. Les demandes du site apparaîtront alors ici.</p>
   )}
+  {enRetard > 0 && <p class="adm-warn adm-late">{enRetard} nouvelle{enRetard > 1 ? 's' : ''} demande{enRetard > 1 ? 's' : ''} à rappeler en retard (plus de 24 h hors week-end). <a href="/admin?statut=nouveau">Voir les nouvelles demandes</a></p>}
   {dbError && <p class="adm-warn">Impossible de lire la base de données : {dbError}</p>}
 
   <div class="adm-tools">
@@ -65,9 +67,10 @@ const tabHref = (id: string) => '/admin' + (id || q ? '?' + new URLSearchParams(
       <tbody>
         {rows.map(({ c, s }) => {
           const st = STATUTS.find((x) => x.id === c.statut);
+          const r = rappel(c);
           return (
             <tr data-href={`/admin/client/${c.id}`}>
-              <td class="t-date" data-l="Reçu le">{dateFr(c.created_at)}</td>
+              <td class="t-date" data-l="Reçu le">{dateFr(c.created_at)}{r && <span class:list={['t-due', { late: r.enRetard }]}>{r.enRetard ? 'En retard · ' : 'Rappeler avant '}{r.label}</span>}</td>
               <td class="t-name" data-l="Client"><a href={`/admin/client/${c.id}`}>{s.nom}</a><span>{c.tel}</span></td>
               <td data-l="Projet">{s.projet || '—'}</td>
               <td data-l="Budget">{s.budget || '—'}</td>

@@ -43,7 +43,7 @@ export default function RdvForm() {
         <div class="pf-done">
           <span class="pf-check sage" aria-hidden="true">✓</span>
           <h2>C'est noté, {f.prenom} !</h2>
-          <p>Demande de rendez-vous ({f.rdvType.toLowerCase()}) le {f.rdvDate} à {f.rdvSlot}. Je vous confirme le créneau par SMS au {f.tel}.</p>
+          <p>Demande de rendez-vous ({f.rdvType.toLowerCase()}) le {f.rdvDate} à {f.rdvSlot}. Je vous confirme le créneau par SMS au {f.tel}, sous 24 h hors week-end.</p>
           <a href="/" class="pill pf-home">Retour à l'accueil</a>
         </div>
       </div>

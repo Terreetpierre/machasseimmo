@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { OFFER, SITE } from '../data/site';
+import { HORAIRES, OFFER, RAPPEL, SITE } from '../data/site';
 import { Chips, Field } from './fields';
 import {
   ARR, EMPTY, NUMK, STEPS, SLOTS, brief, fiche, formatInput, nextDays, stepKeys, submit, validate, type FormState,
@@ -74,15 +74,15 @@ export default function ProjectForm() {
   const nextLabel = sending ? 'Envoi en cours…' : (cur === 'validation' || cur === 'qcontact') ? 'Envoyer ma recherche' : (mode === 'vente' && cur === 'contact') ? 'Envoyer ma demande' : 'Continuer';
   const labels = keys.map((k) => STEPS[k].title);
   const intro = !complet
-    ? (mode === 'achat' ? '2 minutes, sans engagement. Je vous rappelle sous 24 h pour affiner ensemble.' : '1 minute, sans engagement. Je vous rappelle sous 24 h.')
+    ? (mode === 'achat' ? `2 minutes, sans engagement. Je vous rappelle ${RAPPEL} (${HORAIRES}) pour affiner ensemble.` : `1 minute, sans engagement. Je vous rappelle ${RAPPEL} (${HORAIRES}).`)
     : (mode === 'achat' ? 'Environ 5 minutes. Chaque réponse alimente votre fiche de recherche : plus elle est précise, plus je trouve vite.' : "Décrivez votre bien : je vous recontacte sous 24 h pour organiser une visite d'estimation gratuite.");
 
   const doneTitle = mode === 'vente' ? "Demande d'estimation envoyée." : complet && reserve ? 'Votre appel est réservé.' : 'Votre fiche de recherche est enregistrée.';
   const doneText = mode === 'vente'
-    ? `Merci ${f.prenom} ! Je vous recontacte sous 24 h pour convenir d'une visite d'estimation gratuite.`
+    ? `Merci ${f.prenom} ! Je vous recontacte ${RAPPEL} (${HORAIRES}) pour convenir d'une visite d'estimation gratuite.`
     : complet && reserve
       ? `Merci ${f.prenom} ! Je vous appelle le ${f.rdvDate} à ${f.rdvSlot} pour valider votre fiche. Vous recevrez ensuite votre mandat de recherche par email. Aucun paiement aujourd'hui.`
-      : `Merci ${f.prenom} ! Je vous rappelle sous 24 h pour valider votre fiche. Aucun paiement aujourd'hui.`;
+      : `Merci ${f.prenom} ! Je vous rappelle ${RAPPEL} (${HORAIRES}) pour valider votre fiche. Aucun paiement aujourd'hui.`;
 
   const download = () => {
     if (!result) return;
@@ -132,7 +132,7 @@ export default function ProjectForm() {
 
         {cur === 'validation' && (
           <div class="pf-fields pf-valid">
-            <Chips label="Comment souhaitez-vous que l'on échange ?" opts={['Réserver un appel gratuit', 'Être rappelé(e) sous 24 h']} value={f.payChoice} onPick={(o) => set('payChoice', o)} large />
+            <Chips label="Comment souhaitez-vous que l'on échange ?" opts={['Réserver un appel gratuit', 'Être rappelé(e) sous 24 h (hors week-end)']} value={f.payChoice} onPick={(o) => set('payChoice', o)} large />
             <div class="pf-recap">
               <span class="pf-recap-k">Récapitulatif de votre recherche</span>
               <p>{brief(f)}</p>

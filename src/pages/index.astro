@@ -27,6 +27,7 @@ const jsonLd = {
   founder: { '@type': 'Person', name: SITE.person },
   description: "Chasseur immobilier indépendant (pas une agence immobilière) à Roanne : recherche, visites, négociation et accompagnement jusqu'à l'acte. Achat, investissement locatif et vente.",
   address: { '@type': 'PostalAddress', streetAddress: SITE.address.street, addressLocality: SITE.address.city, postalCode: SITE.address.postalCode, addressRegion: SITE.address.region, addressCountry: 'FR' },
+  openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], opens: '09:00', closes: '18:00' }],
   areaServed: ['Roanne', 'Riorges', 'Mably', 'Le Coteau', 'Villerest', 'Commelle-Vernay', 'Perreux', 'Renaison', 'Charlieu'],
   knowsAbout: ['Chasse immobilière', "Achat d'immeuble", 'Immeuble de rapport', 'Achat immobilier', 'Investissement locatif', 'Estimation immobilière', 'Vente immobilière'],
 };
