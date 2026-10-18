@@ -51,7 +51,7 @@ export default function ProjectForm() {
     const data = fiche(ref, mode, complet, f);
     setSending(true); setSendError('');
     try {
-      await submit({ kind: 'projet', fiche: data }, hp);
+      await submit({ kind: 'projet', fiche: data, reponses: f }, hp);
       setResult({ ref, json: JSON.stringify(data, null, 2) });
     } catch {
       setSendError(`L'envoi n'a pas abouti. Réessayez, ou appelez-moi directement au ${SITE.phone}.`);

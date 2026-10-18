@@ -1,0 +1,20 @@
+---
+import Admin from '../../../layouts/Admin.astro';
+import ClientEditor from '../../../islands/admin/ClientEditor';
+import { STATUTS, ficheClaude, getClient } from '../../../lib/db';
+
+export const prerender = false;
+
+const id = Number(Astro.params.id);
+const c = Number.isInteger(id) ? await getClient(id) : null;
+if (!c) return new Response('Client introuvable', { status: 404 });
+
+const client = {
+  id: c.id, ref: c.ref, created_at: new Date(c.created_at).toISOString(), type: c.type, statut: c.statut, source: c.source,
+  reponses: c.reponses, decouverte: c.decouverte, rdv: c.rdv, notes: c.notes,
+};
+const nom = [c.prenom, c.nom].filter(Boolean).join(' ') || 'Nouveau client';
+---
+<Admin title={nom}>
+  <ClientEditor client:load client={client} statuts={STATUTS.map((s) => ({ ...s }))} initialFiche={ficheClaude(c)} />
+</Admin>

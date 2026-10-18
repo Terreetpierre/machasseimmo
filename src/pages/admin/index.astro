@@ -1,0 +1,87 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { STATUTS, hasDb, listClients, type ClientRow } from '../../lib/db';
+import { summarize, dateFr } from '../../lib/clients-view';
+
+export const prerender = false;
+
+const statut = Astro.url.searchParams.get('statut') ?? '';
+const q = (Astro.url.searchParams.get('q') ?? '').trim();
+let all: ClientRow[] = [];
+let dbError = '';
+if (hasDb()) {
+  try { all = await listClients(); } catch (e) { dbError = String(e); }
+}
+
+const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const rows = all
+  .map((c) => ({ c, s: summarize(c) }))
+  .filter(({ c, s }) => (!statut || c.statut === statut) && (!q || norm([s.nom, c.email, c.tel, s.projet, s.secteur, c.ref, c.notes].join(' ')).includes(norm(q))));
+const count = (id: string) => all.filter((c) => c.statut === id).length;
+const tabHref = (id: string) => '/admin' + (id || q ? '?' + new URLSearchParams({ ...(id ? { statut: id } : {}), ...(q ? { q } : {}) }) : '');
+---
+<Admin title="Mes clients">
+  <div class="adm-head">
+    <div>
+      <h1 class="heading">Mes clients</h1>
+      <p class="adm-sub">{all.length} fiche{all.length > 1 ? 's' : ''} · les demandes du site arrivent ici automatiquement</p>
+    </div>
+    <form method="post" action="/admin/nouveau" class="adm-new">
+      <button type="submit" name="type" value="achat" class="pill pill-accent">+ Nouvel acheteur</button>
+      <button type="submit" name="type" value="vente" class="pill pill-outline">+ Nouveau vendeur</button>
+    </form>
+  </div>
+
+  {!hasDb() && (
+    <p class="adm-warn">La base de données n'est pas encore branchée. Dans Vercel : Storage → Create Database → Neon (Postgres), reliez-la au projet, puis redéployez. Les demandes du site apparaîtront alors ici.</p>
+  )}
+  {dbError && <p class="adm-warn">Impossible de lire la base de données : {dbError}</p>}
+
+  <div class="adm-tools">
+    <nav class="adm-tabs" aria-label="Filtrer par statut">
+      <a href={tabHref('')} class:list={[{ on: !statut }]}>Tous <span>{all.length}</span></a>
+      {STATUTS.map((s) => (
+        <a href={tabHref(s.id)} class:list={[{ on: statut === s.id }]}><i class={`st st-${s.id}`}></i>{s.label} <span>{count(s.id)}</span></a>
+      ))}
+    </nav>
+    <form method="get" class="adm-search" role="search">
+      {statut && <input type="hidden" name="statut" value={statut} />}
+      <input class="f-input" type="search" name="q" value={q} placeholder="Rechercher un nom, une ville, un téléphone…" aria-label="Rechercher" />
+    </form>
+  </div>
+
+  {rows.length === 0 ? (
+    <div class="adm-empty">
+      <p class="heading">{all.length ? 'Aucun client ne correspond.' : 'Aucun client pour le moment.'}</p>
+      <p>{all.length ? 'Changez de filtre ou de recherche.' : 'Les formulaires remplis sur le site s’afficheront ici.'}</p>
+    </div>
+  ) : (
+    <table class="adm-table">
+      <thead>
+        <tr><th>Reçu le</th><th>Client</th><th>Projet</th><th>Budget</th><th>Secteur</th><th>Statut</th><th>Découverte</th></tr>
+      </thead>
+      <tbody>
+        {rows.map(({ c, s }) => {
+          const st = STATUTS.find((x) => x.id === c.statut);
+          return (
+            <tr data-href={`/admin/client/${c.id}`}>
+              <td class="t-date" data-l="Reçu le">{dateFr(c.created_at)}</td>
+              <td class="t-name" data-l="Client"><a href={`/admin/client/${c.id}`}>{s.nom}</a><span>{c.tel}</span></td>
+              <td data-l="Projet">{s.projet || '—'}</td>
+              <td data-l="Budget">{s.budget || '—'}</td>
+              <td class="t-sect" data-l="Secteur">{s.secteur || '—'}</td>
+              <td data-l="Statut"><span class={`badge st-${c.statut}`}>{st?.label ?? c.statut}</span></td>
+              <td data-l="Découverte">{c.decouverte ? <span class="ok">✓ Faite</span> : <span class="todo">À faire</span>}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  )}
+
+  <script>
+    // Toute la ligne est cliquable.
+    document.querySelectorAll<HTMLElement>('tr[data-href]').forEach((tr) =>
+      tr.addEventListener('click', (e) => { if (!(e.target as HTMLElement).closest('a')) location.href = tr.dataset.href!; }));
+  </script>
+</Admin>

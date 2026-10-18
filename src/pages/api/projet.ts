@@ -8,9 +8,25 @@
 //   MAIL_TO             destinataire (défaut : contact@libertinvest.fr)
 //   MAIL_FROM           expéditeur vérifié dans Resend (ex. « Ton Chasseur Immo <noreply@tonchasseurimmo-roannais.fr> »)
 //   FICHES_WEBHOOK_URL  facultatif
+//   DATABASE_URL        base Postgres du back-office (créée par l'intégration Neon de Vercel)
 import type { APIRoute } from 'astro';
+import { hasDb, insertClient } from '../../lib/db';
+import { EMPTY, type FormState } from '../../islands/form-schema';
 
 export const prerender = false;
+
+/** Garde uniquement les réponses connues du formulaire, avec des longueurs raisonnables. */
+function cleanAnswers(r: unknown): FormState {
+  const out: FormState = {};
+  if (!r || typeof r !== 'object') return out;
+  for (const [k, v] of Object.entries(r as Record<string, unknown>)) {
+    if (!(k in EMPTY)) continue;
+    if (typeof v === 'string') out[k] = v.slice(0, 2000);
+    else if (typeof v === 'boolean') out[k] = v;
+    else if (Array.isArray(v)) out[k] = v.filter((x) => typeof x === 'string').slice(0, 40).map((x) => x.slice(0, 200));
+  }
+  return out;
+}
 
 const MAX_BYTES = 65536;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
@@ -63,11 +79,26 @@ export const POST: APIRoute = async ({ request }) => {
     return json(422, { ok: false, error: 'Coordonnées incomplètes' });
   }
 
-  const ref = /^(TCI|RDV)-\d{6}$/.test(String(fiche.reference)) ? String(fiche.reference) : (kind === 'rdv' ? 'RDV-' : 'TCI-') + String(Date.now()).slice(-6);
+  let ref = /^(TCI|RDV)-\d{6}$/.test(String(fiche.reference)) ? String(fiche.reference) : (kind === 'rdv' ? 'RDV-' : 'TCI-') + String(Date.now()).slice(-6);
+  let delivered = false;
+
+  // 1) Enregistrement dans le back-office (si la base est configurée).
+  let adminUrl = '';
+  if (hasDb()) {
+    try {
+      const type = kind === 'rdv' ? 'rdv' : fiche.type === 'estimation_vente' ? 'vente' : 'achat';
+      const reponses = kind === 'rdv' ? { prenom: c.prenom, tel: c.telephone, email: c.email } : cleanAnswers(data.reponses);
+      const row = await insertClient({ ref, type, reponses, rdv: kind === 'rdv' ? fiche.rendez_vous ?? null : null });
+      ref = row.ref;
+      adminUrl = new URL(`/admin/client/${row.id}`, request.url).href;
+      delivered = true;
+    } catch (e) {
+      console.error('Base de données indisponible', e);
+    }
+  }
+
   const record = { ...fiche, reference: ref, recu_le: new Date().toISOString() };
   const body = JSON.stringify(record, null, 2);
-
-  let delivered = false;
 
   const apiKey = env('RESEND_API_KEY');
   if (apiKey) {
@@ -79,12 +110,12 @@ export const POST: APIRoute = async ({ request }) => {
         to: [env('MAIL_TO') || 'contact@libertinvest.fr'],
         reply_to: c.email,
         subject: `${LABELS[record.type] ?? 'Nouveau formulaire'} — ${oneLine(`${c.prenom} ${c.nom ?? ''}`)} — ${ref}`,
-        text: summary(ref, record),
+        text: summary(ref, record) + (adminUrl ? `\nFiche dans le back-office : ${adminUrl}` : ''),
         attachments: [{ filename: `${ref}.json`, content: Buffer.from(body).toString('base64') }],
       }),
     }).catch(() => null);
-    delivered = !!res?.ok;
-    if (!delivered) console.error('Resend error', res?.status, await res?.text().catch(() => ''));
+    delivered ||= !!res?.ok;
+    if (!res?.ok) console.error('Resend error', res?.status, await res?.text().catch(() => ''));
   }
 
   const hook = env('FICHES_WEBHOOK_URL');

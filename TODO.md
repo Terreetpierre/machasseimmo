@@ -11,6 +11,8 @@
 - [ ] Carte T : le site indique qu'elle est en cours ; mettre à jour le texte (honoraires, mentions, pied de page) à sa délivrance.
 
 ## Technique
+- [ ] Back-office : créer la base Neon dans Vercel (Storage), ajouter `ADMIN_PASSWORD` et `CLAUDE_API_TOKEN`, redéployer, puis se connecter sur `/admin`.
+- [ ] Ajouter au rendez-vous de découverte les questions de Pierre (captures d'écran à venir) dans `src/islands/form-schema.ts`.
 - [ ] Créer le compte Resend, vérifier le domaine, renseigner les variables d'environnement Vercel (voir README).
 - [ ] Faire un envoi test du formulaire et du rendez-vous une fois en ligne.
 - [ ] Télécharger les photos Pexels / Wikimedia et les héberger dans `public/images` (elles sont actuellement chargées depuis leurs sites d'origine), en gardant les crédits.

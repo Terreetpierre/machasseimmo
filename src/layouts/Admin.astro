@@ -1,0 +1,31 @@
+---
+import '../styles/global.css';
+import '../islands/islands.css';
+import '../styles/admin.css';
+
+interface Props { title: string; bare?: boolean }
+const { title, bare = false } = Astro.props;
+---
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{title} · Back-office</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body class="adm-body">
+  {!bare && (
+    <header class="adm-top">
+      <a href="/admin" class="adm-brand"><span class="heading">Ton Chasseur Immo</span><span>Back-office</span></a>
+      <nav class="adm-nav">
+        <a href="/admin">Mes clients</a>
+        <a href="/" target="_blank" rel="noopener">Voir le site ↗</a>
+        <form method="post" action="/admin/logout"><button type="submit">Déconnexion</button></form>
+      </nav>
+    </header>
+  )}
+  <main class="adm-main"><slot /></main>
+</body>
+</html>

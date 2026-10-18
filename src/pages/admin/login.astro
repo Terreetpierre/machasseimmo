@@ -1,0 +1,38 @@
+---
+import Admin from '../../layouts/Admin.astro';
+import { adminConfigured, checkPassword, openSession } from '../../lib/auth';
+
+export const prerender = false;
+
+const next = Astro.url.searchParams.get('next') || '/admin';
+const safeNext = next.startsWith('/admin') ? next : '/admin';
+let error = '';
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  if (checkPassword(String(form.get('password') ?? ''))) {
+    openSession(Astro.cookies, Astro.url.protocol === 'https:');
+    return Astro.redirect(safeNext, 303);
+  }
+  await new Promise((r) => setTimeout(r, 800)); // ralentit les essais au hasard
+  error = 'Mot de passe incorrect.';
+}
+---
+<Admin title="Connexion" bare>
+  <div class="adm-login">
+    <h1 class="heading">Back-office</h1>
+    <p>Ton Chasseur Immo Roannais</p>
+    {adminConfigured() ? (
+      <form method="post">
+        <label class="f-field">
+          <span class="f-label">Mot de passe</span>
+          <input class="f-input" type="password" name="password" autocomplete="current-password" required autofocus />
+        </label>
+        {error && <span class="f-err" role="alert">{error}</span>}
+        <button type="submit" class="pill pill-accent">Se connecter</button>
+      </form>
+    ) : (
+      <p class="adm-warn">Le back-office n'est pas encore activé : ajoutez la variable <code>ADMIN_PASSWORD</code> dans les réglages Vercel du projet, puis redéployez.</p>
+    )}
+  </div>
+</Admin>
